@@ -1,36 +1,40 @@
 export interface User {
-  id: string
-  username: string
-  email: string
-  name?: string
-  avatarUrl?: string
+  id: number
+  nickName: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Post {
-  id: string
-  authorId: string
-  content: string
-  createdAt: string
+  id: number
+  description: string
+  userId: number
+  createdAt?: string
+  updatedAt?: string
   tags?: Tag[]
-  imageUrl?: string
+  images?: Image[]
 }
 
 export interface Comment {
-  id: string
-  postId: string
-  authorId: string
-  content: string
-  createdAt: string
+  id: number
+  postId: number
+  userId: number
+  message: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Tag {
-  id: string
+  id: number
   name: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Image {
-  id: string
-  postId: string
+  id: number
+  postId: number
   url: string
-  alt?: string
+  createdAt?: string
+  updatedAt?: string
 }
