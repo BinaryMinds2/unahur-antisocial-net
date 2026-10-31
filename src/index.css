@@ -12,3 +12,13 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer components {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg;
+  }
+
+  .glow-hover {
+    @apply transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)];
+  }
+}
