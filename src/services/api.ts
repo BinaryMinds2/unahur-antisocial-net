@@ -1,4 +1,12 @@
-import type { Comment, Image, Post, Tag, User } from '../types'
+import type {
+  Comment,
+  Image,
+  Post,
+  Tag,
+  User,
+  UserRecord,
+  UserRegistrationData,
+} from '../types'
 
 const API_URL = (
   import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
@@ -32,7 +40,19 @@ async function request<T>(
   return response.json() as Promise<T>
 }
 
-export const fetchUsers = (): Promise<User[]> => request<User[]>('/users')
+interface ApiDataResponse<T> {
+  data: T
+}
+
+export async function fetchUsers(): Promise<UserRecord[]> {
+  const response = await request<ApiDataResponse<UserRecord[]>>('/users')
+
+  if (!Array.isArray(response.data)) {
+    throw new Error('La respuesta de usuarios de la API no es válida.')
+  }
+
+  return response.data
+}
 
 export const fetchPosts = (): Promise<Post[]> => request<Post[]>('/posts')
 
@@ -44,11 +64,44 @@ export const fetchTags = (): Promise<Tag[]> => request<Tag[]>('/tags')
 export const fetchPostImages = (postId: number): Promise<Image[]> =>
   request<Image[]>(`/posts/${postId}/images`)
 
-export const createUser = (nickName: string): Promise<User> =>
-  request<User>('/users', {
+export async function createUser(
+  user: UserRegistrationData,
+): Promise<User> {
+  const response = await request<ApiDataResponse<User>>('/users', {
     method: 'POST',
-    body: JSON.stringify({ nickName }),
+    body: JSON.stringify({ nickName: user.nickName }),
   })
+
+  return response.data
+}
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null) {
+    const errorRecord = error as Record<string, unknown>
+    const response = errorRecord.response
+    if (typeof response === 'object' && response !== null) {
+      const data = (response as Record<string, unknown>).data
+      if (typeof data === 'object' && data !== null) {
+        const dataRecord = data as Record<string, unknown>
+        const responseMessage = dataRecord.message ?? dataRecord.error
+        if (typeof responseMessage === 'string' && responseMessage.length > 0) {
+          return responseMessage
+        }
+      }
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message
+    }
+
+    const message = errorRecord.message
+    if (typeof message === 'string' && message.length > 0) {
+      return message
+    }
+  }
+
+  return fallback
+}
 
 export const createPost = (description: string, userId: number): Promise<Post> =>
   request<Post>('/posts', {

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react'
+import { motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
@@ -76,6 +76,12 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
       : 'border-transparent text-matrix-muted hover:border-matrix-accent-hover hover:text-matrix-accent-hover'
   }`
 
+// Estilo exclusivo para destacar el CTA de registro manteniendo la onda terminal
+const registerLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded border border-matrix-accent/60 bg-green-700/60 px-4 py-2 font-mono font-bold text-sm text-white transition-all shadow-sm hover:bg-green-600 hover:shadow-[0_0_15px_rgba(0,204,82,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg ${
+    isActive ? 'ring-2 ring-matrix-accent' : ''
+  }`
+
 export default function Navbar() {
   const { user, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -117,9 +123,12 @@ export default function Navbar() {
           <div
             className={`${isMenuOpen ? 'flex' : 'hidden'} absolute left-4 right-4 top-16 flex-col gap-3 rounded border border-matrix-border bg-matrix-card p-4 shadow-lg md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
           >
+            {/* 
             <NavLink to="/" end className={navLinkClass} onClick={closeMenu}>
               [ /inicio ]
             </NavLink>
+            */}
+
             {user ? (
               <>
                 <NavLink to="/create-post" className={navLinkClass} onClick={closeMenu}>
@@ -141,12 +150,13 @@ export default function Navbar() {
                 <NavLink to="/login" className={navLinkClass} onClick={closeMenu}>
                   [ /login ]
                 </NavLink>
+
                 <NavLink
                   to="/register"
-                  className={navLinkClass}
+                  className={registerLinkClass}
                   onClick={closeMenu}
                 >
-                 [ /registrarse ]
+                  [ /registrarse ]
                 </NavLink>
               </>
             )}

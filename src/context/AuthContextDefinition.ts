@@ -1,9 +1,10 @@
 import { createContext } from 'react'
-import type { User } from '../types'
+import type { User, UserRegistrationData } from '../types'
 
 export interface AuthContextValue {
   user: User | null
-  login: (user: User) => void
+  login: (identifier: string, password: string) => Promise<User>
+  register: (data: UserRegistrationData) => Promise<User>
   logout: () => void
 }
 

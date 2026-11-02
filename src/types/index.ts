@@ -1,8 +1,17 @@
 export interface User {
   id: number
   nickName: string
+  email?: string
   createdAt?: string
   updatedAt?: string
+}
+
+export interface UserRecord extends User {
+  password?: string
+}
+
+export interface UserRegistrationData {
+  nickName: string
 }
 
 export interface Post {
