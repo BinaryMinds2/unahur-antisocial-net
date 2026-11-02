@@ -18,10 +18,9 @@ mkdir backend
 cd backend
 
 # Clonar el repositorio de Persistencia
-git clone https://gitea.unahur.edu.ar/Estrategia-de-persistencia-C2-2026/ejercicio-47-grupo-13.git
+git clone https://gitea.unahur.edu.ar/Estrategia-de-persistencia-C2-2026/trabajo-practico-grupal-persistire.git
 
-# Ingresar a la subcarpeta del proyecto clonado
-cd ejercicio-47-grupo-13
+
 
 # Instalar dependencias e iniciar el servidor en modo desarrollo
 npm install
