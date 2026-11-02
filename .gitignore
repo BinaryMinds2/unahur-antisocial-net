@@ -28,4 +28,6 @@ dist-ssr
 
 TP2_Consigna.pdf
 tareasTP2-CIU.jpg
-TP1_Persistencia/
+
+# Ignorar todo lo que se descargue dentro de la carpeta backend
+backend/

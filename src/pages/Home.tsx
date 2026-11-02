@@ -52,13 +52,15 @@ export default function Home() {
           {error}
         </p>
       )}
-      {!isLoading && !error && posts.length === 0 && (
-        <p className="text-slate-400">Todavía no hay publicaciones.</p>
+      {!isLoading && !error && (!Array.isArray(posts) || posts.length === 0) && (
+        <p className="font-mono text-matrix-muted">
+          // [ sin publicaciones para mostrar ]
+        </p>
       )}
       <section className="space-y-4" aria-label="Listado de publicaciones">
-        {posts.map((post) => (
+        {Array.isArray(posts) ? posts.map((post) => (
           <PostCard key={post.id} post={post} />
-        ))}
+        )) : []}
       </section>
     </main>
   )
