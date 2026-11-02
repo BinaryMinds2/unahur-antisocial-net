@@ -11,6 +11,7 @@ export interface Post {
   userId: number
   createdAt?: string
   updatedAt?: string
+  author?: Pick<User, 'id' | 'nickName'>
   tags?: Tag[]
   images?: Image[]
 }

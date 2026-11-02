@@ -3,6 +3,7 @@ import NotFound from './pages/NotFound'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import Home from './pages/Home'
 
 function PagePlaceholder({ title }: { title: string }) {
   return <h1 className="py-8 text-2xl font-bold text-matrix-text">{title}</h1>
@@ -16,7 +17,7 @@ function App() {
         <main className="flex-1">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <Routes>
-              <Route path="/" element={<PagePlaceholder title="Inicio" />} />
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<PagePlaceholder title="Iniciar sesión" />} />
               <Route path="/register" element={<PagePlaceholder title="Registrarse" />} />
               <Route path="/post/:id" element={<PagePlaceholder title="Publicación" />} />

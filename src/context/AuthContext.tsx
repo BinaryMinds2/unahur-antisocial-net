@@ -1,22 +1,13 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react'
 import type { User } from '../types'
+import { AuthContext } from './AuthContextDefinition'
 
 const STORAGE_KEY = 'unahur-auth-user'
-
-interface AuthContextValue {
-  user: User | null
-  login: (user: User) => void
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode
@@ -56,14 +47,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext)
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-
-  return context
 }
