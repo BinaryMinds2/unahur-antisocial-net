@@ -4,7 +4,6 @@ import type {
   Post,
   Tag,
   User,
-  UserRecord,
   UserRegistrationData,
 } from '../types'
 
@@ -40,18 +39,45 @@ async function request<T>(
   return response.json() as Promise<T>
 }
 
+function isUser(value: unknown): value is User {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+
+  return (
+    typeof record.id === 'number' &&
+    Number.isFinite(record.id) &&
+    typeof record.nickName === 'string' &&
+    record.nickName.trim().length > 0 &&
+    (record.createdAt === undefined || typeof record.createdAt === 'string') &&
+    (record.updatedAt === undefined || typeof record.updatedAt === 'string')
+  )
+}
+
 interface ApiDataResponse<T> {
   data: T
 }
 
-export async function fetchUsers(): Promise<UserRecord[]> {
-  const response = await request<ApiDataResponse<UserRecord[]>>('/users')
+export async function fetchUsers(): Promise<User[]> {
+  const response = await request<unknown>('/users')
+  let users: unknown
 
-  if (!Array.isArray(response.data)) {
+  if (Array.isArray(response)) {
+    users = response
+  } else if (typeof response === 'object' && response !== null) {
+    const wrappedResponse = response as Record<string, unknown>
+    users = Array.isArray(wrappedResponse.users)
+      ? wrappedResponse.users
+      : wrappedResponse.data
+  }
+
+  if (!Array.isArray(users) || !users.every(isUser)) {
     throw new Error('La respuesta de usuarios de la API no es válida.')
   }
 
-  return response.data
+  return users
 }
 
 export const fetchPosts = (): Promise<Post[]> => request<Post[]>('/posts')

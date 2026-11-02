@@ -3,7 +3,7 @@ import type { User, UserRegistrationData } from '../types'
 
 export interface AuthContextValue {
   user: User | null
-  login: (identifier: string, password: string) => Promise<User>
+  authenticate: (user: User) => void
   register: (data: UserRegistrationData) => Promise<User>
   logout: () => void
 }

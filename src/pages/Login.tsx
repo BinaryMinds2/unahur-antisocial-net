@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import { useAuth } from '../context/useAuth'
-import { getApiErrorMessage } from '../services/api'
+import { fetchUsers, getApiErrorMessage } from '../services/api'
+import type { User } from '../types'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { authenticate } = useAuth()
 
-  const [email, setEmail] = useState('')
+  const [nickName, setNickName] = useState('')
   const [password, setPassword] = useState('123456')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,11 +17,40 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    const normalizedNickName = nickName.trim().toLowerCase()
+    if (!normalizedNickName) {
+      setError('Ingresa un nombre de usuario.')
+      return
+    }
+
+    if (!password.trim()) {
+      setError('Ingresa una contraseña.')
+      return
+    }
+
     setLoading(true)
 
     try {
-      await login(email, password)
-      navigate('/perfil')
+      const users = await fetchUsers()
+      const matchingUser = users.find(
+        (user) => user.nickName.trim().toLowerCase() === normalizedNickName,
+      )
+
+      if (!matchingUser) {
+        throw new Error('No existe un usuario con ese nombre de usuario.')
+      }
+
+      const authenticatedUser: User = {
+        id: matchingUser.id,
+        nickName: matchingUser.nickName,
+        createdAt: matchingUser.createdAt,
+        updatedAt: matchingUser.updatedAt,
+      }
+
+      localStorage.setItem('user', JSON.stringify(authenticatedUser))
+      authenticate(authenticatedUser)
+      navigate('/')
     } catch (err: unknown) {
       setError(
         getApiErrorMessage(
@@ -40,7 +70,7 @@ export default function Login() {
           // [ /acceso_sistema ]
         </h2>
         <p className="mb-6 font-mono text-xs text-matrix-muted">
-          Ingresa tus credenciales para autenticar el perfil.
+          Ingresa tu nombre de usuario para autenticar el perfil.
         </p>
 
         {error && (
@@ -51,12 +81,12 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormInput
-            id="email"
+            id="nickName"
             label="nombre_usuario"
             type="text"
             placeholder="matrix_dev"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={nickName}
+            onChange={(e) => setNickName(e.target.value)}
             required
           />
 
