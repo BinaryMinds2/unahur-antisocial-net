@@ -1,7 +1,7 @@
 import { motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import TerminalIcon from './TerminalIcon'
 
 const CHARS = '01#$@!%&*<>?/'
