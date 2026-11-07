@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import { useAuth } from '../context/useAuth'
-import { fetchUsers, getApiErrorMessage } from '../services/api'
-import type { User } from '../types'
+import { getApiErrorMessage } from '../services/api'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { authenticate } = useAuth()
+  const { login } = useAuth()
 
   const [nickName, setNickName] = useState('')
   const [password, setPassword] = useState('123456')
@@ -32,24 +31,10 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const users = await fetchUsers()
-      const matchingUser = users.find(
-        (user) => user.nickName.trim().toLowerCase() === normalizedNickName,
-      )
-
-      if (!matchingUser) {
-        throw new Error('No existe un usuario con ese nombre de usuario.')
+      const authenticated = await login(normalizedNickName, password)
+      if (!authenticated) {
+        throw new Error('Usuario o contraseña incorrectos.')
       }
-
-      const authenticatedUser: User = {
-        id: matchingUser.id,
-        nickName: matchingUser.nickName,
-        createdAt: matchingUser.createdAt,
-        updatedAt: matchingUser.updatedAt,
-      }
-
-      localStorage.setItem('user', JSON.stringify(authenticatedUser))
-      authenticate(authenticatedUser)
       navigate('/')
     } catch (err: unknown) {
       setError(

@@ -1,45 +1,49 @@
 export interface User {
   id: number
   nickName: string
-  createdAt?: string
-  updatedAt?: string
+  password?: string
 }
 
-export interface UserRegistrationData {
-  nickName: string
+export interface Tag {
+  id: number
+  name: string
+}
+
+export interface PostImage {
+  id: number
+  postId: number
+  url: string
 }
 
 export interface Post {
   id: number
   description: string
   userId: number
-  createdAt?: string
-  updatedAt?: string
+  User?: User
+  Tags?: Tag[]
+  PostImages?: PostImage[]
+  commentsCount?: number
+  user?: User
+  comments?: Comment[]
+  // Legacy response aliases kept for existing cards and API consumers.
   author?: Pick<User, 'id' | 'nickName'>
   tags?: Tag[]
-  images?: Image[]
+  images?: PostImage[]
 }
 
 export interface Comment {
   id: number
   postId: number
   userId: number
-  message: string
-  createdAt?: string
-  updatedAt?: string
+  text: string
+  User?: User
+  // Legacy response alias kept for existing consumers.
+  message?: string
 }
 
-export interface Tag {
-  id: number
-  name: string
-  createdAt?: string
-  updatedAt?: string
+export interface UserRegistrationData {
+  nickName: string
+  password?: string
 }
 
-export interface Image {
-  id: number
-  postId: number
-  url: string
-  createdAt?: string
-  updatedAt?: string
-}
+export type Image = PostImage

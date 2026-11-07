@@ -20,7 +20,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      await register({ nickName })
+      await register({ nickName, password })
       navigate('/login')
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Error al registrar el usuario.'))
