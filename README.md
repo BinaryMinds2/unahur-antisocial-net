@@ -10,25 +10,18 @@ Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite 
 
 Para levantar el proyecto completo se deben ejecutar el backend y el frontend en paralelo. Requisitos: Node.js 22 o superior y Git.
 
-### 1. Clonar e Iniciar el Backend
+### 1. Preparar el Backend (solo la primera vez)
 
-En una terminal ubicada en la raíz del proyecto, ejecutá:
+Si todavía no clonaste el backend, desde la raíz del proyecto ejecutá:
 
 ```bash
-# Entrar a la carpeta contenedora (ya existe en el repositorio)
 cd backend
-
-# Clonar el repositorio de la API de la cátedra
 git clone https://github.com/lucasfigarola/backend-api backend-api
-
-# Usar el seed del proyecto (con más datos e imágenes de ejemplo)
 cp ../seed/seed.js backend-api/seed.js
-
-# Instalar dependencias, cargar datos de ejemplo e iniciar el servidor
 cd backend-api
 npm install
-node seed.js
-npm start
+cd ../..
+npm ci
 ```
 
 En PowerShell, el paso de copiar el seed es:
@@ -37,23 +30,19 @@ En PowerShell, el paso de copiar el seed es:
 Copy-Item ..\seed\seed.js backend-api\seed.js -Force
 ```
 
-> ⚠️ `node seed.js` **borra y vuelve a crear** la base de datos cada vez que se ejecuta.
+Si `backend/backend-api` ya existe, no vuelvas a clonarlo. Copiá el seed solo si todavía no está en `backend/backend-api/seed.js`.
 
-Dejá esa terminal abierta. Verificá que responda en `http://localhost:3001/users`.
+### 2. Iniciar Backend y Frontend
 
-### 2. Iniciar el Frontend (React + Vite)
+Desde la raíz del proyecto, ejecutá:
 
-En una segunda terminal ubicada en la raíz del proyecto, ejecutá:
-
-```bash
-# Instalar dependencias del frontend
-npm ci
-
-# Iniciar servidor de desarrollo de Vite
-npm run dev
+```sh
+npm run dev:all
 ```
 
-La app queda en `http://localhost:5173`.
+El comando carga los datos de ejemplo y, si el seed termina correctamente, inicia el backend y el frontend en paralelo. La API queda en `http://localhost:3001` y la app en `http://localhost:5173`. Para detener ambos servidores, presioná `Ctrl+C`.
+
+> ⚠️ El seed **borra y vuelve a crear** la base de datos cada vez que ejecutás `npm run dev:all`.
 
 La URL de la API se toma de `VITE_API_URL` (por defecto `http://localhost:3001`). Si el backend corre en otro lado, creá un archivo `.env.local` basado en `.env.example`.
 
@@ -74,6 +63,7 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 | Comando | Descripción |
 |---|---|
 | `npm run dev` | Servidor de desarrollo |
+| `npm run dev:all` | Carga el seed y levanta backend y frontend |
 | `npm run build` | Compilación de producción |
 | `npm run lint` | Chequeo de código |
 | `npm run preview` | Vista previa de la compilación |
@@ -81,4 +71,3 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 ---
 
 ## 👥 Integrantes
-

@@ -16,6 +16,12 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!nickName.trim() || !email.trim()) {
+      setError('Completá todos los campos.')
+      return
+    }
+
     setLoading(true)
 
     try {
