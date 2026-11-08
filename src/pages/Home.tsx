@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import PostCard from '../components/PostCard'
-import { getPosts } from '../services/api'
+import { getCommentsByPost, getPostImages, getPosts } from '../services/api'
 import type { Post } from '../types'
 
 export default function Home() {
@@ -12,9 +12,24 @@ export default function Home() {
     let active = true
 
     getPosts()
-      .then((loadedPosts) => {
+      .then(async (loadedPosts) => {
+        const postsWithDetails = await Promise.all(
+          loadedPosts.map(async (post) => {
+            const [images, comments] = await Promise.all([
+              getPostImages(post.id),
+              getCommentsByPost(post.id),
+            ])
+
+            return {
+              ...post,
+              PostImages: images,
+              commentsCount: comments.length,
+            }
+          }),
+        )
+
         if (active) {
-          setPosts(loadedPosts)
+          setPosts(postsWithDetails)
         }
       })
       .catch((requestError: unknown) => {

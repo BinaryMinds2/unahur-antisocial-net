@@ -53,11 +53,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         candidate.nickName.trim().toLowerCase() === normalizedNickName,
     )
 
-    if (
-      !matchingUser ||
-      (password !== '123456' &&
-        matchingUser.password !== password)
-    ) {
+    if (!matchingUser || password !== '123456') {
       return false
     }
 

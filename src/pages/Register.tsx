@@ -10,7 +10,6 @@ export default function Register() {
 
   const [nickName, setNickName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('123456')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -20,7 +19,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      await register({ nickName, password })
+      await register({ nickName: nickName.trim(), email: email.trim() })
       navigate('/login')
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Error al registrar el usuario.'))
@@ -71,9 +70,8 @@ export default function Register() {
             label="clave_acceso"
             type="password"
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            value="123456"
+            readOnly
           />
 
           <button

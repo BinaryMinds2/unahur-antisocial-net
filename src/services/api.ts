@@ -7,12 +7,11 @@ import type {
   UserRegistrationData,
 } from '../types'
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 function getRequestUrl(endpoint: string): string {
   const baseUrl = API_URL.replace(/\/$/, '')
-  const apiBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`
-  return `${apiBaseUrl}${endpoint}`
+  return `${baseUrl}${endpoint}`
 }
 
 export async function fetchApi<T>(
@@ -74,7 +73,7 @@ export const getPostImages = (postId: number): Promise<PostImage[]> =>
 export const createPost = (data: {
   description: string
   userId: number
-  tags?: number[]
+  tagIds?: number[]
 }): Promise<Post> =>
   fetchApi<Post>('/posts', {
     method: 'POST',
@@ -90,7 +89,7 @@ export const createUser = (data: UserRegistrationData): Promise<User> =>
 export const createComment = (data: {
   postId: number
   userId: number
-  text: string
+  content: string
 }): Promise<Comment> =>
   fetchApi<Comment>('/comments', {
     method: 'POST',

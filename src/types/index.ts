@@ -1,7 +1,7 @@
 export interface User {
   id: number
   nickName: string
-  password?: string
+  email?: string
 }
 
 export interface Tag {
@@ -18,7 +18,8 @@ export interface PostImage {
 export interface Post {
   id: number
   description: string
-  userId: number
+  userId?: number
+  UserId?: number
   User?: User
   Tags?: Tag[]
   PostImages?: PostImage[]
@@ -34,16 +35,15 @@ export interface Post {
 export interface Comment {
   id: number
   postId: number
-  userId: number
-  text: string
+  userId?: number
+  UserId?: number
+  content: string
   User?: User
-  // Legacy response alias kept for existing consumers.
-  message?: string
 }
 
 export interface UserRegistrationData {
   nickName: string
-  password?: string
+  email: string
 }
 
 export type Image = PostImage

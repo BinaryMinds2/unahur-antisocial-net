@@ -56,7 +56,7 @@ export default function PostCard({ post }: PostCardProps) {
             <SpyAvatar className="h-6 w-6" />
           </div>
           <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
-            @{user?.nickName ?? `usuario_${post.userId}`}
+            @{user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}
           </span>
         </div>
         <span className="shrink-0 font-mono text-xs text-matrix-muted">
