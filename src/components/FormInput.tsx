@@ -1,8 +1,9 @@
-import type { InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 
 interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
+  icon?: ReactNode
 }
 
 export default function FormInput({
@@ -10,6 +11,7 @@ export default function FormInput({
   error,
   id,
   className = '',
+  icon,
   ...props
 }: FormInputProps) {
   return (
@@ -20,13 +22,22 @@ export default function FormInput({
       >
         [ {label} ]
       </label>
-      <input
-        id={id}
-        className={`w-full rounded border border-matrix-border bg-matrix-bg px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 transition-all focus:border-matrix-accent focus:outline-none focus:ring-2 focus:ring-matrix-accent/50 ${
-          error ? 'border-red-500/80 focus:border-red-500 focus:ring-red-500/30' : ''
-        } ${className}`}
-        {...props}
-      />
+      <div className="relative">
+        {icon && (
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-matrix-muted">
+            {icon}
+          </span>
+        )}
+        <input
+          id={id}
+          className={`w-full rounded-lg border border-matrix-border bg-matrix-bg/80 ${
+            icon ? 'pl-10' : 'px-3'
+          } px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 transition-all focus:border-matrix-accent focus:outline-none focus:ring-1 focus:ring-matrix-accent focus:shadow-[0_0_15px_rgba(16,185,129,0.25)] ${
+            error ? 'border-red-500/80 focus:border-red-500 focus:ring-red-500/30' : ''
+          } ${className}`}
+          {...props}
+        />
+      </div>
       {error && (
         <span className="block font-mono text-xs text-red-400">
           ! {error}

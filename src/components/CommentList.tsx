@@ -11,7 +11,7 @@ export default function CommentList({
 }: CommentListProps) {
   if (loading) {
     return (
-      <p className="rounded border border-matrix-border bg-matrix-bg p-4 font-mono text-xs text-matrix-accent">
+      <p className="rounded-lg border border-matrix-border/60 bg-black/40 p-3 font-mono text-xs text-matrix-accent">
         [ cargando_comentarios... ]
       </p>
     )
@@ -19,7 +19,7 @@ export default function CommentList({
 
   if (comments.length === 0) {
     return (
-      <p className="rounded border border-matrix-border bg-matrix-bg p-4 font-mono text-xs text-matrix-muted">
+      <p className="rounded-lg border border-matrix-border/60 bg-black/40 p-3 font-mono text-xs text-matrix-muted">
         // [ todavía_no_hay_comentarios ]
       </p>
     )
@@ -30,15 +30,15 @@ export default function CommentList({
       {comments.map((comment) => (
         <li
           key={comment.id}
-          className="rounded border border-matrix-border bg-matrix-bg/70 p-4"
+          className="space-y-1 rounded-lg border border-matrix-border/60 bg-black/40 p-3 text-xs font-mono text-matrix-text"
         >
-          <div className="mb-2 flex items-center justify-between gap-3 font-mono text-xs">
+          <div className="flex items-center justify-between gap-3">
             <span className="font-bold text-matrix-accent">
               @{comment.User?.nickName ?? `usuario_${comment.UserId ?? comment.userId ?? 'desconocido'}`}
             </span>
             <span className="text-matrix-muted">#COM-{String(comment.id).padStart(3, '0')}</span>
           </div>
-          <p className="text-sm leading-relaxed text-matrix-text">{comment.content}</p>
+          <p className="leading-relaxed">{comment.content}</p>
         </li>
       ))}
     </ul>

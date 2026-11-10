@@ -57,7 +57,7 @@ export default function CommentForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded border border-matrix-border bg-matrix-bg/70 p-4"
+      className="rounded-xl border border-matrix-border bg-matrix-card/70 p-4 shadow-lg backdrop-blur-md"
     >
       <label
         htmlFor="comment-content"
@@ -72,7 +72,7 @@ export default function CommentForm({
         placeholder="Escribí tu comentario..."
         rows={3}
         maxLength={500}
-        className="w-full resize-y rounded border border-matrix-border bg-matrix-card px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 focus:border-matrix-accent focus:outline-none focus:ring-2 focus:ring-matrix-accent/50"
+        className="w-full resize-y rounded-lg border border-matrix-border bg-black/40 px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 focus:border-matrix-accent focus:outline-none focus:ring-1 focus:ring-matrix-accent focus:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
         disabled={loading}
       />
       {error && (
@@ -87,7 +87,7 @@ export default function CommentForm({
           disabled={loading}
           className="rounded border border-matrix-accent/60 bg-green-700/60 px-4 py-2 font-mono text-xs font-bold text-white transition-all hover:bg-green-600 hover:shadow-[0_0_15px_rgba(0,204,82,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent disabled:opacity-50"
         >
-          {loading ? '[ enviando... ]' : '[ comentar ]'}
+          {loading ? '[ enviando... ]' : '[ enviar_comentario ]'}
         </button>
       </div>
     </form>

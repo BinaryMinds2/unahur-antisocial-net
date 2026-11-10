@@ -1,9 +1,23 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import { motion, type Variants } from 'motion/react'
 import type { Post } from '../types'
 
 interface PostCardProps {
   post: Post
+}
+
+const postVariants: Variants = {
+  hidden: { opacity: 0, y: 30, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.45,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
 }
 
 export function SpyAvatar({ className = 'w-5 h-5' }: { className?: string }) {
@@ -47,7 +61,12 @@ export default function PostCard({ post }: PostCardProps) {
         : 'grid-cols-2 sm:grid-cols-3'
 
   return (
-    <article className="group relative overflow-hidden rounded-lg border border-matrix-border bg-matrix-card/80 p-5 shadow-lg transition-all duration-200 hover:border-matrix-accent/40">
+    <motion.article
+      layout
+      variants={postVariants}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className="group relative overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/70 p-5 shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-[1.01] hover:border-matrix-accent/60 hover:border-l-matrix-accent hover:shadow-[0_0_25px_rgba(16,185,129,0.12)]"
+    >
       <div className="absolute inset-y-0 left-0 w-1 bg-matrix-border transition-colors duration-200 group-hover:bg-matrix-accent" />
 
       <header className="flex items-center justify-between gap-4">
@@ -116,6 +135,6 @@ export default function PostCard({ post }: PostCardProps) {
           [ ver_detalle -&gt; ]
         </Link>
       </footer>
-    </article>
+    </motion.article>
   )
 }

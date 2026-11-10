@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/CommentForm'
 import CommentList from '../components/CommentList'
@@ -10,6 +11,16 @@ import {
   getPostImages,
 } from '../services/api'
 import type { Comment, Post } from '../types'
+
+function DetailShell({ children }: { children: ReactNode }) {
+  return (
+    <section className="relative min-h-[calc(100vh-80px)] w-full overflow-hidden bg-matrix-bg px-4 py-8">
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#10b9810a_1px,transparent_1px),linear-gradient(to_bottom,#10b9810a_1px,transparent_1px)] [background-size:3rem_3rem]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 z-0 h-[450px] w-[800px] -translate-x-1/2 rounded-full bg-matrix-accent/5 blur-[180px]" />
+      <div className="relative z-10 mx-auto max-w-3xl">{children}</div>
+    </section>
+  )
+}
 
 export default function PostDetail() {
   const { id } = useParams<{ id: string }>()
@@ -59,7 +70,7 @@ export default function PostDetail() {
 
   if (hasInvalidId) {
     return (
-      <section className="mx-auto max-w-3xl px-4 py-10">
+      <DetailShell>
         <div className="rounded border border-red-500/50 bg-red-950/30 p-5 font-mono text-red-400">
           ! La publicación solicitada no es válida.
         </div>
@@ -70,23 +81,23 @@ export default function PostDetail() {
         >
           [ volver ]
         </button>
-      </section>
+      </DetailShell>
     )
   }
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-3xl px-4 py-10">
+      <DetailShell>
         <p className="rounded border border-matrix-border bg-matrix-card p-4 font-mono text-matrix-accent">
           [ cargando_publicacion... ]
         </p>
-      </section>
+      </DetailShell>
     )
   }
 
   if (error || !post) {
     return (
-      <section className="mx-auto max-w-3xl px-4 py-10">
+      <DetailShell>
         <div className="rounded border border-red-500/50 bg-red-950/30 p-5 font-mono text-red-400">
           ! {error || 'No se encontró la publicación.'}
         </div>
@@ -97,26 +108,28 @@ export default function PostDetail() {
         >
           [ volver ]
         </button>
-      </section>
+      </DetailShell>
     )
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-10">
-      <Link
-        to="/"
-        className="font-mono text-xs text-matrix-muted transition-colors hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
-      >
-        {'<'} volver_a_publicaciones
-      </Link>
-
-      <header className="mb-6 mt-6">
-        <p className="font-mono text-sm uppercase tracking-widest text-matrix-accent">
-          detalle_de_publicación
-        </p>
-        <h1 className="mt-2 font-mono text-3xl font-bold text-matrix-text">
-          // publicación #{String(post.id).padStart(3, '0')}
-        </h1>
+    <DetailShell>
+      <header className="mb-6 flex items-center justify-between rounded-xl border border-matrix-border bg-matrix-card/60 p-5 shadow-xl backdrop-blur-md">
+        <div>
+          <div className="mb-1 flex items-center gap-1 font-mono text-xs text-matrix-accent">
+            <span>&gt; SYSTEM_POST_DETAIL</span>
+            <span className="animate-pulse font-bold">_</span>
+          </div>
+          <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text">
+            // publicación #{post.id}
+          </h1>
+        </div>
+        <Link
+          to="/"
+          className="flex items-center gap-1 font-mono text-xs text-matrix-accent hover:underline"
+        >
+          [ &lt;- volver_al_feed ]
+        </Link>
       </header>
 
       <PostCard post={post} />
@@ -125,9 +138,9 @@ export default function PostDetail() {
         <div className="flex items-center justify-between gap-3 border-b border-matrix-border pb-3">
           <h2
             id="comments-title"
-            className="font-mono text-lg font-bold text-matrix-text"
+            className="mb-0 font-mono text-sm text-matrix-accent"
           >
-            // comentarios
+            [ &gt; comentarios_archivados ]
           </h2>
           <span className="font-mono text-xs text-matrix-muted">
             [{comments.length}]
@@ -139,6 +152,6 @@ export default function PostDetail() {
           onCreated={(comment) => setComments((current) => [...current, comment])}
         />
       </section>
-    </section>
+    </DetailShell>
   )
 }

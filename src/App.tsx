@@ -23,39 +23,37 @@ function App() {
       <div className="flex min-h-screen flex-col bg-matrix-bg">
         <Navbar />
         <main className="flex-1">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <Routes>
-              <Route path="/" element={<HomeRoute />} />
-              <Route path="/login" element={<Login />} />             
-              <Route path="/register" element={<Register />} />       
-              <Route path="/post/:id" element={<PostDetail />} />
-              <Route
-                path="/perfil"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create-post"
-                element={
-                  <ProtectedRoute>
-                    <PagePlaceholder title="Crear publicación" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/post/:id" element={<PostDetail />} />
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-post"
+              element={
+                <ProtectedRoute>
+                  <PagePlaceholder title="Crear publicación" />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </main>
         <Footer />
       </div>
