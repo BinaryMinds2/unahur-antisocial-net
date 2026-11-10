@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Profile from './pages/Profile'
 import Login from './pages/Login'       // <-- 1. Importá Login
 import Register from './pages/Register' // <-- 1. Importá Register
+import PostDetail from './pages/PostDetail'
 
 function PagePlaceholder({ title }: { title: string }) {
   return <h1 className="py-8 text-2xl font-bold text-matrix-text">{title}</h1>
@@ -27,7 +28,7 @@ function App() {
               <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />             
               <Route path="/register" element={<Register />} />       
-              <Route path="/post/:id" element={<PagePlaceholder title="Publicación" />} />
+              <Route path="/post/:id" element={<PostDetail />} />
               <Route
                 path="/perfil"
                 element={
