@@ -4,6 +4,7 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
   icon?: ReactNode
+  rightElement?: ReactNode
 }
 
 export default function FormInput({
@@ -12,6 +13,7 @@ export default function FormInput({
   id,
   className = '',
   icon,
+  rightElement,
   ...props
 }: FormInputProps) {
   return (
@@ -32,11 +34,12 @@ export default function FormInput({
           id={id}
           className={`w-full rounded-lg border border-matrix-border bg-matrix-bg/80 ${
             icon ? 'pl-10' : 'px-3'
-          } px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 transition-all focus:border-matrix-accent focus:outline-none focus:ring-1 focus:ring-matrix-accent focus:shadow-[0_0_15px_rgba(16,185,129,0.25)] ${
+          } ${rightElement ? 'pr-10' : ''} px-3 py-2 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 transition-all focus:border-matrix-accent focus:outline-none focus:ring-1 focus:ring-matrix-accent focus:shadow-[0_0_15px_rgba(16,185,129,0.25)] ${
             error ? 'border-red-500/80 focus:border-red-500 focus:ring-red-500/30' : ''
           } ${className}`}
           {...props}
         />
+        {rightElement}
       </div>
       {error && (
         <span className="block font-mono text-xs text-red-400">

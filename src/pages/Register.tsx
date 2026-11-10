@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
+import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle'
 import { useAuth } from '../context/useAuth'
 import { getApiErrorMessage } from '../services/api'
 
@@ -14,6 +15,7 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,11 +83,17 @@ export default function Register() {
           <FormInput
             id="password"
             label="clave_acceso"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             value="123456"
             readOnly
             icon={<AuthFieldIcon type="lock" />}
+            rightElement={
+              <PasswordVisibilityToggle
+                isVisible={showPassword}
+                onToggle={() => setShowPassword((isVisible) => !isVisible)}
+              />
+            }
           />
 
           <button

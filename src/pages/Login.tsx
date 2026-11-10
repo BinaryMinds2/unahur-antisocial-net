@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
+import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle'
 import { useAuth } from '../context/useAuth'
 import { getApiErrorMessage } from '../services/api'
 
@@ -12,6 +13,7 @@ export default function Login() {
 
   const [nickName, setNickName] = useState('')
   const [password, setPassword] = useState('123456')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -84,11 +86,17 @@ export default function Login() {
           <FormInput
             id="password"
             label="clave_acceso"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             icon={<AuthFieldIcon type="lock" />}
+            rightElement={
+              <PasswordVisibilityToggle
+                isVisible={showPassword}
+                onToggle={() => setShowPassword((isVisible) => !isVisible)}
+              />
+            }
             required
           />
 

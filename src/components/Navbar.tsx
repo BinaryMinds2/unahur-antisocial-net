@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
@@ -12,9 +12,7 @@ function HackerTextWave() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const scramble = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
+    if (intervalRef.current) clearInterval(intervalRef.current)
 
     let iteration = 0
     intervalRef.current = setInterval(() => {
@@ -40,11 +38,8 @@ function HackerTextWave() {
 
   useEffect(() => {
     scramble()
-
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [scramble])
 
@@ -76,22 +71,77 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
       : 'border-transparent text-matrix-muted hover:border-matrix-accent-hover hover:text-matrix-accent-hover'
   }`
 
-// Estilo exclusivo para destacar el CTA de registro manteniendo la onda terminal
+const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `flex items-center gap-2 rounded-lg border-l-2 border-transparent px-3 py-2.5 font-mono text-sm transition-all duration-200 hover:border-matrix-accent hover:bg-matrix-accent/10 hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-matrix-accent ${
+    isActive ? 'border-matrix-accent bg-matrix-accent/10 text-matrix-accent' : 'text-matrix-text'
+  }`
+
 const registerLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded border border-matrix-accent/60 bg-green-700/60 px-4 py-2 font-mono font-bold text-sm text-white transition-all shadow-sm hover:bg-green-600 hover:shadow-[0_0_15px_rgba(0,204,82,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg ${
     isActive ? 'ring-2 ring-matrix-accent' : ''
   }`
 
+function NavigationItems({
+  mobile,
+  user,
+  closeMenu,
+  logout,
+}: {
+  mobile: boolean
+  user: { nickName: string } | null
+  closeMenu: () => void
+  logout: () => void
+}) {
+  const linkClass = mobile ? mobileNavLinkClass : navLinkClass
+
+  return (
+    <>
+      {user ? (
+        <>
+          <NavLink to="/create-post" className={linkClass} onClick={closeMenu}>
+            {mobile && '> '}[ +publicar ]
+          </NavLink>
+          <NavLink to="/profile" className={linkClass} onClick={closeMenu}>
+            {mobile && '> '}[ @{user.nickName} ]
+          </NavLink>
+          <button
+            type="button"
+            onClick={() => {
+              closeMenu()
+              logout()
+            }}
+            className={mobile ? mobileNavLinkClass({ isActive: false }) : navLinkClass({ isActive: false })}
+          >
+            {mobile && '> '}[ /salir ]
+          </button>
+        </>
+      ) : (
+        <>
+          <NavLink to="/login" className={linkClass} onClick={closeMenu}>
+            {mobile && '> '}[ /login ]
+          </NavLink>
+          <NavLink
+            to="/register"
+            className={mobile ? mobileNavLinkClass : registerLinkClass}
+            onClick={closeMenu}
+          >
+            {mobile && '> '}[ /registrarse ]
+          </NavLink>
+        </>
+      )}
+    </>
+  )
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  const closeMenu = () => setIsMenuOpen(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const closeMenu = () => setIsOpen(false)
 
   return (
     <header className="sticky top-0 z-50 border-b border-matrix-border/80 bg-matrix-bg/85 backdrop-blur-md">
       <nav className="py-4" aria-label="Navegación principal">
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link
             to="/"
             className="group flex items-center gap-3 font-mono font-bold text-matrix-text transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
@@ -110,57 +160,53 @@ export default function Navbar() {
 
           <button
             type="button"
-            className="rounded border border-matrix-border p-2 font-bold text-matrix-muted transition-all hover:border-matrix-accent-hover hover:text-matrix-accent-hover hover:shadow-[0_0_10px_rgba(0,204,82,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg md:hidden"
-            aria-label="Abrir menú de navegación"
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+            className={`rounded border p-2 font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg md:hidden ${
+              isOpen
+                ? 'border-matrix-accent text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                : 'border-matrix-border text-matrix-muted hover:border-matrix-accent-hover hover:text-matrix-accent-hover hover:shadow-[0_0_10px_rgba(0,204,82,0.35)]'
+            }`}
+            aria-label={isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((open) => !open)}
           >
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="my-1 block h-0.5 w-5 bg-current" />
-            <span className="block h-0.5 w-5 bg-current" />
+            {isOpen ? (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
           </button>
 
-          <div
-            className={`${isMenuOpen ? 'flex' : 'hidden'} absolute left-4 right-4 top-16 flex-col gap-3 rounded border border-matrix-border bg-matrix-card p-4 shadow-lg md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
-          >
-            {/* 
-            <NavLink to="/" end className={navLinkClass} onClick={closeMenu}>
-              [ /inicio ]
-            </NavLink>
-            */}
-
-            {user ? (
-              <>
-                <NavLink to="/create-post" className={navLinkClass} onClick={closeMenu}>
-                  [ +publicar ]
-                </NavLink>
-                <NavLink to="/profile" className={navLinkClass} onClick={closeMenu}>
-                  [ @{user.nickName} ]
-                </NavLink>
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="rounded border border-matrix-border px-3 py-2 font-mono font-bold text-sm text-matrix-muted transition-all hover:border-red-400/60 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
-                >
-                  [ /salir ]
-                </button>
-              </>
-            ) : (
-              <>
-                <NavLink to="/login" className={navLinkClass} onClick={closeMenu}>
-                  [ /login ]
-                </NavLink>
-
-                <NavLink
-                  to="/register"
-                  className={registerLinkClass}
-                  onClick={closeMenu}
-                >
-                  [ /registrarse ]
-                </NavLink>
-              </>
-            )}
+          <div className="hidden items-center gap-3 md:flex">
+            <NavigationItems mobile={false} user={user} closeMenu={closeMenu} logout={logout} />
           </div>
+
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute left-0 right-0 top-full z-50 mx-4 mt-2 rounded-xl border border-matrix-border/80 bg-matrix-card/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl md:hidden"
+              >
+                <div className="flex flex-col gap-2">
+                  <NavigationItems mobile user={user} closeMenu={closeMenu} logout={logout} />
+                </div>
+                <div className="mt-4 flex items-center gap-2 border-t border-matrix-border/50 pt-3 font-mono text-[10px] tracking-wider text-matrix-muted">
+                  <motion.span
+                    aria-hidden="true"
+                    animate={{ opacity: [0.35, 1, 0.35] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="h-2 w-2 rounded-full bg-matrix-accent shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                  />
+                  [ MOBILE_NODE: ACTIVE ]
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
     </header>

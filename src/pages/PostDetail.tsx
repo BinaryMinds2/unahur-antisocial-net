@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { motion } from 'motion/react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/CommentForm'
 import CommentList from '../components/CommentList'
@@ -132,7 +133,13 @@ export default function PostDetail() {
         </Link>
       </header>
 
-      <PostCard post={post} />
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <PostCard post={post} />
+      </motion.div>
 
       <section className="mt-8 space-y-4" aria-labelledby="comments-title">
         <div className="flex items-center justify-between gap-3 border-b border-matrix-border pb-3">
