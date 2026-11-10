@@ -14,8 +14,26 @@ const containerVariants: Variants = {
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
+  const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const availableTags = Array.from(
+    new Map(
+      posts
+        .flatMap((post) => post.Tags ?? post.tags ?? [])
+        .map((tag) => [tag.id, tag]),
+    ).values(),
+  ).sort((first, second) => first.name.localeCompare(second.name))
+
+  const filteredPosts =
+    selectedTagId === null
+      ? posts
+      : posts.filter((post) =>
+          (post.Tags ?? post.tags ?? []).some(
+            (tag) => tag.id === selectedTagId,
+          ),
+        )
 
   useEffect(() => {
     let active = true
@@ -104,13 +122,57 @@ export default function Home() {
           </p>
         )}
 
+        {!loading && !error && availableTags.length > 0 && (
+          <nav
+            className="flex flex-wrap items-center gap-2"
+            aria-label="Filtrar publicaciones por etiqueta"
+          >
+            <button
+              type="button"
+              aria-pressed={selectedTagId === null}
+              onClick={() => setSelectedTagId(null)}
+              className={`rounded border px-3 py-1.5 font-mono text-xs transition-colors ${
+                selectedTagId === null
+                  ? 'border-matrix-accent bg-matrix-accent/10 text-matrix-accent'
+                  : 'border-matrix-border text-matrix-muted hover:border-matrix-accent/60 hover:text-matrix-text'
+              }`}
+            >
+              Todas
+            </button>
+            {availableTags.map((tag) => (
+              <button
+                type="button"
+                key={tag.id}
+                aria-pressed={selectedTagId === tag.id}
+                onClick={() => setSelectedTagId(tag.id)}
+                className={`rounded border px-3 py-1.5 font-mono text-xs transition-colors ${
+                  selectedTagId === tag.id
+                    ? 'border-matrix-accent bg-matrix-accent/10 text-matrix-accent'
+                    : 'border-matrix-border text-matrix-muted hover:border-matrix-accent/60 hover:text-matrix-text'
+                }`}
+              >
+                #{tag.name}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {!loading &&
+          !error &&
+          selectedTagId !== null &&
+          filteredPosts.length === 0 && (
+            <p className="font-mono text-matrix-muted">
+              // [ no hay publicaciones con esta etiqueta ]
+            </p>
+          )}
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="space-y-4"
         >
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </motion.div>

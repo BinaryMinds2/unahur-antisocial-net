@@ -6,6 +6,59 @@ Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite 
 
 ---
 
+## 📄 Enunciado del trabajo
+
+<details>
+<summary>Ver objetivo y requisitos</summary>
+
+### Objetivo
+
+Desarrollar en React el frontend de **UnaHur Anti-Social Net**, conectado a la API provista por la cátedra. La aplicación debe permitir navegar publicaciones, ver sus comentarios, registrarse, iniciar sesión y crear publicaciones. El login es simulado: no se requiere autenticación real ni JWT.
+
+### Funcionalidades requeridas
+
+- **Login simulado:** ingresar con `nickName` y la contraseña fija `123456`. Consultar `GET /users`, validar la contraseña en el frontend y guardar el usuario en un contexto global (`useContext`) y en `localStorage`. Las rutas protegidas solo se muestran con una sesión iniciada.
+- **Registro:** validar los campos requeridos y enviar `POST /users`. Mostrar los errores que devuelva la API. Si el registro es exitoso, se puede redirigir al login o iniciar sesión directamente.
+- **Inicio / feed:** listar publicaciones recientes mostrando descripción, imágenes (si hay), etiquetas, cantidad de comentarios y un enlace al detalle `/post/:id`. El resto del contenido de Home es libre.
+- **Detalle de publicación:** mostrar descripción completa, imágenes, etiquetas y comentarios visibles. Incluir un formulario controlado para agregar comentarios mediante `POST /comments`.
+- **Perfil:** vista protegida que muestra el `nickName`, las publicaciones del usuario consultadas por `userId`, la cantidad de comentarios por publicación, enlaces al detalle y una opción para cerrar sesión.
+- **Crear publicación:** vista protegida con descripción obligatoria, URLs de imágenes opcionales y selección de etiquetas obtenidas desde la API. Enviar `POST /posts` con `description`, `userId` y etiquetas; asociar cada imagen mediante `POST /postimages` con `url` y `postId`.
+
+### Requisitos técnicos
+
+React + TypeScript; `useState`, `useEffect` y `useContext`; navegación y rutas protegidas con `react-router-dom`; formularios controlados; consumo REST con Fetch o Axios; diseño responsive; persistencia de sesión con `localStorage`; validaciones y mensajes de error/éxito.
+
+### Extras opcionales
+
+Ya está implementado el filtro por etiquetas en Home. Otros extras posibles son publicaciones destacadas o aleatorias, scroll infinito o paginación y alertas visuales. La contraseña dinámica con validación en el servidor es opcional únicamente para quienes cursan Estrategia de Persistencia.
+
+### API y endpoints de referencia
+
+Repositorio: https://github.com/lucasfigarola/backend-api
+
+| Método | Endpoint | Uso |
+|---|---|---|
+| GET | `/users` | Listar usuarios |
+| GET | `/users/:id` | Obtener un usuario |
+| POST | `/users` | Crear usuario |
+| GET | `/posts` | Listar publicaciones |
+| GET | `/posts/:id` | Obtener una publicación |
+| GET | `/posts?userId=xxx` | Listar publicaciones de un usuario |
+| POST | `/posts` | Crear publicación |
+| GET | `/tags` | Listar etiquetas |
+| GET | `/comments/post/:postId` | Listar comentarios visibles de una publicación |
+| POST | `/comments` | Crear comentario |
+| GET | `/postimages/post/:postId` | Listar imágenes de una publicación |
+| POST | `/postimages` | Asociar una imagen a una publicación |
+
+### Entrega
+
+Publicar el repositorio frontend en GitHub y enviar el enlace público a `lucas.figarola@unahur.edu.ar`, junto con los datos de las personas integrantes. Si se utiliza un backend propio de Estrategia de Persistencia, incluir también el enlace a ese repositorio.
+
+</details>
+
+---
+
 ## 🚀 Guía de Instalación y Ejecución Local
 
 Requisitos: Node.js 22 o superior y Git.
