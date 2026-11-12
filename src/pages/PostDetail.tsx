@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/CommentForm'
 import CommentList from '../components/CommentList'
+import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
 import {
   getApiErrorMessage,
@@ -32,6 +33,7 @@ export default function PostDetail() {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     if (hasInvalidId) {
@@ -67,7 +69,7 @@ export default function PostDetail() {
     return () => {
       active = false
     }
-  }, [hasInvalidId, postId])
+  }, [hasInvalidId, postId, retryCount])
 
   if (hasInvalidId) {
     return (
@@ -99,9 +101,20 @@ export default function PostDetail() {
   if (error || !post) {
     return (
       <DetailShell>
-        <div className="rounded border border-red-500/50 bg-red-950/30 p-5 font-mono text-red-400">
-          ! {error || 'No se encontró la publicación.'}
-        </div>
+        {error ? (
+          <DatabaseErrorTerminal
+            error={error}
+            onRetry={() => {
+              setError('')
+              setLoading(true)
+              setRetryCount((count) => count + 1)
+            }}
+          />
+        ) : (
+          <div className="rounded border border-red-500/50 bg-red-950/30 p-5 font-mono text-red-400">
+            ! No se encontró la publicación.
+          </div>
+        )}
         <button
           type="button"
           onClick={() => navigate(-1)}

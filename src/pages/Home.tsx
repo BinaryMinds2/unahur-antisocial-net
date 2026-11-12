@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
+import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
 import { getCommentsByPost, getPostImages, getPosts } from '../services/api'
 import type { Post } from '../types'
@@ -17,6 +18,7 @@ export default function Home() {
   const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   const availableTags = Array.from(
     new Map(
@@ -77,7 +79,7 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [])
+  }, [retryCount])
 
   return (
     <section className="relative min-h-[calc(100vh-80px)] w-full overflow-hidden bg-matrix-bg px-4 py-8">
@@ -112,9 +114,14 @@ export default function Home() {
           </div>
         )}
         {error && (
-          <p className="rounded border border-red-500/50 bg-red-950/30 p-4 font-mono text-red-400">
-            ! {error}
-          </p>
+          <DatabaseErrorTerminal
+            error={error}
+            onRetry={() => {
+              setError(null)
+              setLoading(true)
+              setRetryCount((count) => count + 1)
+            }}
+          />
         )}
         {!loading && !error && posts.length === 0 && (
           <p className="font-mono text-matrix-muted">
