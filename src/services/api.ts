@@ -57,6 +57,9 @@ export async function fetchApi<T>(
 
 export const getPosts = (): Promise<Post[]> => fetchApi<Post[]>('/posts')
 
+export const getPostsByUser = (userId: number): Promise<Post[]> =>
+  fetchApi<Post[]>(`/posts?userId=${encodeURIComponent(userId)}`)
+
 export const getPostById = (id: string | number): Promise<Post> =>
   fetchApi<Post>(`/posts/${id}`)
 

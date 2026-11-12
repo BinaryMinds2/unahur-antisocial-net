@@ -19,18 +19,28 @@ Desarrollar en React el frontend de **UnaHur Anti-Social Net**, conectado a la A
 
 - **Login simulado:** ingresar con `nickName` y la contraseña fija `123456`. Consultar `GET /users`, validar la contraseña en el frontend y guardar el usuario en un contexto global (`useContext`) y en `localStorage`. Las rutas protegidas solo se muestran con una sesión iniciada.
 - **Registro:** validar los campos requeridos y enviar `POST /users`. Mostrar los errores que devuelva la API. Si el registro es exitoso, se puede redirigir al login o iniciar sesión directamente.
-- **Inicio / feed:** listar publicaciones recientes mostrando descripción, imágenes (si hay), etiquetas, cantidad de comentarios y un enlace al detalle `/post/:id`. El resto del contenido de Home es libre.
+- **Inicio / feed:** listar publicaciones recientes mostrando descripción, imágenes (si hay), etiquetas, cantidad de comentarios y un enlace al detalle `/post/:id`. También permite filtrar las publicaciones por etiqueta.
 - **Detalle de publicación:** mostrar descripción completa, imágenes, etiquetas y comentarios visibles. Incluir un formulario controlado para agregar comentarios mediante `POST /comments`.
-- **Perfil:** vista protegida que muestra el `nickName`, las publicaciones del usuario consultadas por `userId`, la cantidad de comentarios por publicación, enlaces al detalle y una opción para cerrar sesión.
+- **Perfil:** vista protegida que muestra el `nickName`, las publicaciones del usuario consultadas por `userId`, las imágenes, la cantidad de comentarios por publicación, enlaces al detalle y una opción para cerrar sesión. También contempla estados de carga, errores y usuarios sin publicaciones.
 - **Crear publicación:** vista protegida con descripción obligatoria, URLs de imágenes opcionales y selección de etiquetas obtenidas desde la API. Enviar `POST /posts` con `description`, `userId` y etiquetas; asociar cada imagen mediante `POST /postimages` con `url` y `postId`.
 
 ### Requisitos técnicos
 
 React + TypeScript; `useState`, `useEffect` y `useContext`; navegación y rutas protegidas con `react-router-dom`; formularios controlados; consumo REST con Fetch o Axios; diseño responsive; persistencia de sesión con `localStorage`; validaciones y mensajes de error/éxito.
 
-### Extras opcionales
+### Funcionalidades implementadas
 
-Ya está implementado el filtro por etiquetas en Home. Otros extras posibles son publicaciones destacadas o aleatorias, scroll infinito o paginación y alertas visuales. La contraseña dinámica con validación en el servidor es opcional únicamente para quienes cursan Estrategia de Persistencia.
+Además de los requisitos principales, el proyecto ya cuenta con:
+
+- Filtro de publicaciones por etiquetas en Home.
+- Contadores de comentarios en las tarjetas de publicaciones.
+- Carga de imágenes asociadas a cada publicación.
+- Estados visuales de carga, errores y listas vacías.
+- Diseño responsive con menú de navegación móvil.
+- Animaciones de entrada e interacción en el feed y las tarjetas.
+- Rutas protegidas para perfil y creación de publicaciones.
+
+Como próximos extras opcionales se pueden agregar publicaciones destacadas o aleatorias, scroll infinito o paginación y alertas visuales. La contraseña dinámica con validación en el servidor es opcional únicamente para quienes cursan Estrategia de Persistencia.
 
 ### API y endpoints de referencia
 
