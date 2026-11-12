@@ -1,20 +1,6 @@
 const { sequelize, User, Post, Comment, Tag, PostImage } = require('./models');
 
-// Devuelve una URL de imagen estable para evitar depender de un endpoint
-// aleatorio que puede dejar de responder o devolver errores.
-const fotos = {
-  'luna-1': 'photo-1516035069371-29a1b244cc32',
-  'luna-2': 'photo-1493246507139-91e8fad9978e',
-  'sol-1': 'photo-1498050108023-c5249f4df085',
-  'nova-1': 'photo-1516321318423-f06f85e504b3',
-  'kai-1': 'photo-1511379938547-c1f69419868d',
-  'rio-1': 'photo-1500534623283-312aade485b7',
-  'rio-2': 'photo-1501785888041-af3ef285b470',
-  'rio-3': 'photo-1441974231531-c6227db76b6e',
-};
-
-const foto = (palabra, ancho = 800, alto = 500) =>
-  `https://images.unsplash.com/${fotos[palabra]}?auto=format&fit=crop&w=${ancho}&h=${alto}`;
+const foto = (palabra) => `/images/${palabra}.jpg`;
 
 // Fecha de hace N meses (para probar el filtro de comentarios visibles).
 const hace = (meses) => {

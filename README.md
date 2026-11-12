@@ -128,7 +128,7 @@ npm ci
 npm run dev
 ```
 
-> ℹ️ El repo de la cátedra trae su propio `seed.js`. En el paso de copiar se lo reemplaza por el del proyecto, que tiene más datos e imágenes. Si preferís usar el original, salteá ese paso.
+> ℹ️ El repo de la cátedra trae su propio `seed.js`. En el paso de copiar se lo reemplaza por el del proyecto, que tiene más datos e imágenes. Las imágenes locales están en `public/images/` y la base guarda sus rutas. Si preferís usar el seed original, salteá ese paso.
 
 > ⚠️ `node seed.js` **borra y vuelve a crear** la base de datos cada vez que se ejecuta.
 
