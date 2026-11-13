@@ -1,3 +1,4 @@
+import axios from 'axios'
 import type {
   Comment,
   Post,
@@ -9,113 +10,108 @@ import type {
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-function getRequestUrl(endpoint: string): string {
-  const baseUrl = API_URL.replace(/\/$/, '')
-  return `${baseUrl}${endpoint}`
-}
+const apiClient = axios.create({
+  baseURL: API_URL.replace(/\/$/, ''),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-export async function fetchApi<T>(
-  endpoint: string,
-  options?: RequestInit,
-): Promise<T> {
-  const response = await fetch(getRequestUrl(endpoint), {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
-
-  if (!response.ok) {
-    let message = `La solicitud falló (${response.status} ${response.statusText})`
-
-    try {
-      const body = (await response.json()) as {
-        error?: string
-        message?: string
-      }
-      message = body.error ?? body.message ?? message
-    } catch {
-      // Some error responses do not contain JSON.
-    }
-
-    throw new Error(message)
-  }
-
-  const body: unknown = await response.json()
-
-  if (
-    typeof body === 'object' &&
-    body !== null &&
-    'data' in body
-  ) {
+function unwrapApiResponse<T>(body: unknown): T {
+  if (typeof body === 'object' && body !== null && 'data' in body) {
     return (body as { data: T }).data
   }
 
   return body as T
 }
 
-export const getPosts = (): Promise<Post[]> => fetchApi<Post[]>('/posts')
+function getAxiosError(error: unknown): Error {
+  if (!axios.isAxiosError(error) || !error.response) {
+    return error instanceof Error ? error : new Error(String(error))
+  }
+
+  const body: unknown = error.response.data
+  if (typeof body === 'object' && body !== null) {
+    const message = body as { error?: unknown; message?: unknown }
+    if (typeof message.error === 'string') {
+      return new Error(message.error)
+    }
+    if (typeof message.message === 'string') {
+      return new Error(message.message)
+    }
+  }
+
+  return new Error(
+    `La solicitud falló (${error.response.status} ${error.response.statusText})`,
+  )
+}
+
+async function requestApi<T>(
+  request: () => Promise<{ data: unknown }>,
+): Promise<T> {
+  try {
+    const response = await request()
+    return unwrapApiResponse<T>(response.data)
+  } catch (error) {
+    throw getAxiosError(error)
+  }
+}
+
+export const getPosts = (): Promise<Post[]> =>
+  requestApi(() => apiClient.get<unknown>('/posts'))
 
 export const getPostsByUser = (userId: number): Promise<Post[]> =>
-  fetchApi<Post[]>(`/posts?userId=${encodeURIComponent(userId)}`)
+  requestApi(() =>
+    apiClient.get<unknown>(`/posts?userId=${encodeURIComponent(userId)}`),
+  )
 
 export const getPostById = (id: string | number): Promise<Post> =>
-  fetchApi<Post>(`/posts/${id}`)
+  requestApi(() => apiClient.get<unknown>(`/posts/${id}`))
 
-export const getUsers = (): Promise<User[]> => fetchApi<User[]>('/users')
+export const getUsers = (): Promise<User[]> =>
+  requestApi(() => apiClient.get<unknown>('/users'))
 
-export const getTags = (): Promise<Tag[]> => fetchApi<Tag[]>('/tags')
+export const getTags = (): Promise<Tag[]> =>
+  requestApi(() => apiClient.get<unknown>('/tags'))
 
 export const getCommentsByPost = (postId: number): Promise<Comment[]> =>
-  fetchApi<Comment[]>(`/comments/post/${postId}`)
+  requestApi(() => apiClient.get<unknown>(`/comments/post/${postId}`))
 
 export const getPostImages = (postId: number): Promise<PostImage[]> =>
-  fetchApi<PostImage[]>(`/postimages/post/${postId}`)
+  requestApi(() => apiClient.get<unknown>(`/postimages/post/${postId}`))
 
 export const createPost = (data: {
   description: string
   userId: number
   tagIds?: number[]
 }): Promise<Post> =>
-  fetchApi<Post>('/posts', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  requestApi(() => apiClient.post<unknown>('/posts', data))
 
 export const deletePost = (
   id: number,
   userId: number,
 ): Promise<{ message: string }> =>
-  fetchApi<{ message: string }>(
-    `/posts/${id}?userId=${encodeURIComponent(userId)}`,
-    { method: 'DELETE' },
+  requestApi(() =>
+    apiClient.delete<unknown>(
+      `/posts/${id}?userId=${encodeURIComponent(userId)}`,
+    ),
   )
 
 export const createUser = (data: UserRegistrationData): Promise<User> =>
-  fetchApi<User>('/users', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  requestApi(() => apiClient.post<unknown>('/users', data))
 
 export const createComment = (data: {
   postId: number
   userId: number
   content: string
 }): Promise<Comment> =>
-  fetchApi<Comment>('/comments', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  requestApi(() => apiClient.post<unknown>('/comments', data))
 
 export const createPostImage = (data: {
   postId: number
   url: string
 }): Promise<PostImage> =>
-  fetchApi<PostImage>('/postimages', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  requestApi(() => apiClient.post<unknown>('/postimages', data))
 
 // Compatibility aliases for existing screens.
 export const fetchPosts = getPosts
@@ -123,7 +119,7 @@ export const fetchUsers = getUsers
 export const fetchTags = getTags
 export const fetchComments = (postId?: number): Promise<Comment[]> =>
   postId === undefined
-    ? fetchApi<Comment[]>('/comments')
+    ? requestApi(() => apiClient.get<unknown>('/comments'))
     : getCommentsByPost(postId)
 export const fetchPostImages = getPostImages
 
