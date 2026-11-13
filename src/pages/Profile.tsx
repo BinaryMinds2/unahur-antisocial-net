@@ -31,9 +31,28 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeList, setActiveList] = useState<ProfileList | null>(null)
-  const [profileStats, setProfileStats] = useState<ProfileStats>({
-    followers: ['@lucas', '@salir', '@maria'],
-    following: ['@sofia', '@nicolas', '@ana'],
+  const [profileStats] = useState<ProfileStats>(() => {
+    const defaults = {
+      followers: ['@lucas', '@salir', '@maria'],
+      following: ['@sofia', '@nicolas', '@ana'],
+    }
+
+    try {
+      const storedStats = localStorage.getItem('unahur_profile_stats')
+      if (!storedStats) return defaults
+
+      const parsed = JSON.parse(storedStats) as Partial<ProfileStats>
+      return {
+        followers: Array.isArray(parsed.followers)
+          ? parsed.followers
+          : defaults.followers,
+        following: Array.isArray(parsed.following)
+          ? parsed.following
+          : defaults.following,
+      }
+    } catch {
+      return defaults
+    }
   })
 
   useEffect(() => {
@@ -48,23 +67,6 @@ export default function Profile() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [activeList])
-
-  useEffect(() => {
-    try {
-      const storedStats = localStorage.getItem('unahur_profile_stats')
-      if (storedStats) {
-        const parsed = JSON.parse(storedStats) as Partial<ProfileStats>
-        if (parsed.followers || parsed.following) {
-          setProfileStats({
-            followers: Array.isArray(parsed.followers) ? parsed.followers : profileStats.followers,
-            following: Array.isArray(parsed.following) ? parsed.following : profileStats.following,
-          })
-        }
-      }
-    } catch {
-      // Ignored; fallback to defaults below.
-    }
-  }, [])
 
   useEffect(() => {
     localStorage.setItem('unahur_profile_stats', JSON.stringify(profileStats))
@@ -246,7 +248,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setActiveList('followers')}
-                className="min-w-0 rounded-lg px-1 py-2 text-center transition hover:bg-matrix-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+                className="min-w-0 cursor-pointer rounded-lg px-1 py-2 text-center transition hover:bg-matrix-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
                 aria-label={`Ver ${profileStats.followers.length} seguidores`}
               >
                 <div className="font-mono text-2xl font-bold leading-none text-matrix-text sm:text-3xl">
@@ -260,7 +262,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setActiveList('following')}
-                className="min-w-0 rounded-lg px-1 py-2 text-center transition hover:bg-matrix-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+                className="min-w-0 cursor-pointer rounded-lg px-1 py-2 text-center transition hover:bg-matrix-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
                 aria-label={`Ver ${profileStats.following.length} seguidos`}
               >
                 <div className="font-mono text-2xl font-bold leading-none text-matrix-text sm:text-3xl">
