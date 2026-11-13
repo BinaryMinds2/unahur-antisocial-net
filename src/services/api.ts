@@ -83,6 +83,15 @@ export const createPost = (data: {
     body: JSON.stringify(data),
   })
 
+export const deletePost = (
+  id: number,
+  userId: number,
+): Promise<{ message: string }> =>
+  fetchApi<{ message: string }>(
+    `/posts/${id}?userId=${encodeURIComponent(userId)}`,
+    { method: 'DELETE' },
+  )
+
 export const createUser = (data: UserRegistrationData): Promise<User> =>
   fetchApi<User>('/users', {
     method: 'POST',

@@ -12,8 +12,8 @@ interface ConfirmActionModalProps {
 export default function ConfirmActionModal({
   open,
   title,
-  confirmLabel = 'Aceptar',
-  cancelLabel = 'Cancelar',
+  confirmLabel = '[ / aceptar ]',
+  cancelLabel = '[ / cancelar ]',
   onConfirm,
   onCancel,
 }: ConfirmActionModalProps) {
@@ -34,7 +34,7 @@ export default function ConfirmActionModal({
             className="w-[min(92vw,560px)] rounded-2xl border border-matrix-border bg-[#111d2d]/95 p-6 shadow-[0_0_26px_rgba(16,185,129,0.2)]"
           >
             <div className="mb-6 text-center font-mono text-[18px] font-semibold text-matrix-text">
-              {title}
+              // {title}
             </div>
 
             <div className="flex justify-center gap-4">

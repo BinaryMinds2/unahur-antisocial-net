@@ -8,12 +8,12 @@ import {
   getPostImages,
   getPostsByUser,
 } from '../services/api'
+import {
+  getProfileStats,
+  PROFILE_STATS_UPDATED,
+  type ProfileStats,
+} from '../services/profileStats'
 import type { Post } from '../types'
-
-interface ProfileStats {
-  followers: string[]
-  following: string[]
-}
 
 type ProfileList = 'followers' | 'following'
 
@@ -31,29 +31,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeList, setActiveList] = useState<ProfileList | null>(null)
-  const [profileStats] = useState<ProfileStats>(() => {
-    const defaults = {
-      followers: ['@lucas', '@salir', '@maria'],
-      following: ['@sofia', '@nicolas', '@ana'],
-    }
-
-    try {
-      const storedStats = localStorage.getItem('unahur_profile_stats')
-      if (!storedStats) return defaults
-
-      const parsed = JSON.parse(storedStats) as Partial<ProfileStats>
-      return {
-        followers: Array.isArray(parsed.followers)
-          ? parsed.followers
-          : defaults.followers,
-        following: Array.isArray(parsed.following)
-          ? parsed.following
-          : defaults.following,
-      }
-    } catch {
-      return defaults
-    }
-  })
+  const [profileStats, setProfileStats] = useState<ProfileStats>(getProfileStats)
 
   useEffect(() => {
     if (!activeList) return
@@ -69,8 +47,15 @@ export default function Profile() {
   }, [activeList])
 
   useEffect(() => {
-    localStorage.setItem('unahur_profile_stats', JSON.stringify(profileStats))
-  }, [profileStats])
+    const syncProfileStats = () => setProfileStats(getProfileStats())
+
+    window.addEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
+    window.addEventListener('storage', syncProfileStats)
+    return () => {
+      window.removeEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
+      window.removeEventListener('storage', syncProfileStats)
+    }
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -307,7 +292,15 @@ export default function Profile() {
             className="space-y-4"
           >
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard
+                key={post.id}
+                post={post}
+                onDeleted={(deletedPostId) =>
+                  setPosts((current) =>
+                    current.filter((currentPost) => currentPost.id !== deletedPostId),
+                  )
+                }
+              />
             ))}
           </motion.div>
         )}

@@ -271,7 +271,10 @@ export default function PostDetail() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <PostCard post={post} />
+        <PostCard
+          post={post}
+          onDeleted={() => navigate('/', { replace: true })}
+        />
       </motion.div>
 
       <section className="mt-8 space-y-4" aria-labelledby="comments-title">

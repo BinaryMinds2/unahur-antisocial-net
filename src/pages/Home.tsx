@@ -210,7 +210,18 @@ export default function Home() {
           className="space-y-4"
         >
           {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onDeleted={(deletedPostId) => {
+                setPosts((current) =>
+                  current.filter((post) => post.id !== deletedPostId),
+                )
+                setLocalPosts((current) =>
+                  current.filter((post) => post.id !== deletedPostId),
+                )
+              }}
+            />
           ))}
         </motion.div>
       </div>

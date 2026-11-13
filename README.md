@@ -88,8 +88,9 @@ La primera vez, `npm run dev:all` se encarga de:
 
 1. Clonar el backend de la cátedra dentro de `backend/backend-api`.
 2. Instalar sus dependencias.
-3. Cargar los datos de ejemplo (usuarios, posts, comentarios e imágenes) con el seed del proyecto (`seed/seed.js`).
-4. Levantar el backend y el frontend en paralelo.
+3. Instalar en el backend la ruta que permite borrar publicaciones propias.
+4. Cargar los datos de ejemplo (usuarios, posts, comentarios e imágenes) con el seed del proyecto (`seed/seed.js`).
+5. Levantar el backend y el frontend en paralelo.
 
 Las siguientes veces **conserva la base de datos** (usuarios y posts que hayas creado). Para volver a los datos de ejemplo originales:
 
@@ -107,6 +108,7 @@ Para detener ambos servidores, presioná `Ctrl+C`.
 cd backend
 git clone https://github.com/lucasfigarola/backend-api backend-api
 cp ../seed/seed.js backend-api/seed.js
+node ../scripts/install-backend-routes.js
 cd backend-api
 npm install
 node seed.js
