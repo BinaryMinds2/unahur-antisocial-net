@@ -1,18 +1,38 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/CommentForm'
 import CommentList from '../components/CommentList'
 import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
 import {
+  createPost,
+  createPostImage,
   getApiErrorMessage,
   getCommentsByPost,
   getPostById,
   getPostImages,
+  getTags,
 } from '../services/api'
 import type { Comment, Post } from '../types'
+
+const LOCAL_POSTS_KEY = 'unahur_local_posts'
+
+interface StoredLocalPost extends Post {
+  serverPostId?: number
+}
+
+function readLocalPosts(): StoredLocalPost[] {
+  try {
+    const storedPosts = JSON.parse(
+      localStorage.getItem(LOCAL_POSTS_KEY) ?? '[]',
+    ) as StoredLocalPost[]
+    return Array.isArray(storedPosts) ? storedPosts : []
+  } catch {
+    return []
+  }
+}
 
 function DetailShell({ children }: { children: ReactNode }) {
   return (
@@ -26,6 +46,7 @@ function DetailShell({ children }: { children: ReactNode }) {
 
 export default function PostDetail() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const navigate = useNavigate()
   const postId = Number(id)
   const hasInvalidId = !Number.isInteger(postId) || postId <= 0
@@ -34,6 +55,11 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [retryCount, setRetryCount] = useState(0)
+  const locationState = location.state as { migrationNotice?: unknown } | null
+  const migrationNotice =
+    typeof locationState?.migrationNotice === 'string'
+      ? locationState.migrationNotice
+      : null
 
   useEffect(() => {
     if (hasInvalidId) {
@@ -42,12 +68,97 @@ export default function PostDetail() {
 
     let active = true
 
-    Promise.all([
-      getPostById(postId),
-      getPostImages(postId),
-      getCommentsByPost(postId),
-    ])
-      .then(([loadedPost, images, loadedComments]) => {
+    Promise.resolve()
+      .then(async () => {
+        const storedPosts = readLocalPosts()
+        const localPost = storedPosts.find(
+          (storedPost) => storedPost.id === postId,
+        )
+
+        if (!active) return
+
+        if (localPost) {
+          const localTags = localPost.Tags ?? localPost.tags ?? []
+          const availableTags =
+            localTags.length > 0 ? await getTags() : []
+          const matchedTags = localTags.map((tag) =>
+            availableTags.find(
+              (availableTag) =>
+                availableTag.name.toLowerCase() === tag.name.toLowerCase(),
+            ),
+          )
+          const missingTags = localTags
+            .filter((_, index) => !matchedTags[index])
+            .map((tag) => tag.name)
+
+          let serverPostId = localPost.serverPostId
+          if (!serverPostId) {
+            const userId =
+              localPost.UserId ??
+              localPost.userId ??
+              localPost.User?.id ??
+              localPost.user?.id ??
+              localPost.author?.id
+            if (!userId) {
+              throw new Error('No se pudo identificar al autor de la publicación.')
+            }
+
+            const createdPost = await createPost({
+              description: localPost.description,
+              userId,
+              tagIds: matchedTags.flatMap((tag) =>
+                tag ? [tag.id] : [],
+              ),
+            })
+            serverPostId = createdPost.id
+            localStorage.setItem(
+              LOCAL_POSTS_KEY,
+              JSON.stringify(
+                storedPosts.map((storedPost) =>
+                  storedPost.id === localPost.id
+                    ? { ...storedPost, serverPostId }
+                    : storedPost,
+                ),
+              ),
+            )
+          }
+
+          const remoteImages = await getPostImages(serverPostId)
+          const localImages = localPost.PostImages ?? localPost.images ?? []
+          for (const image of localImages) {
+            if (!remoteImages.some((remoteImage) => remoteImage.url === image.url)) {
+              await createPostImage({
+                postId: serverPostId,
+                url: image.url,
+              })
+            }
+          }
+
+          if (!active) return
+          localStorage.setItem(
+            LOCAL_POSTS_KEY,
+            JSON.stringify(
+              storedPosts.filter(
+                (storedPost) => storedPost.id !== localPost.id,
+              ),
+            ),
+          )
+          navigate(`/post/${serverPostId}`, {
+            replace: true,
+            state: missingTags.length
+              ? {
+                  migrationNotice: `No se pudieron migrar estas etiquetas porque no existen en el servidor: ${missingTags.map((tag) => `#${tag}`).join(', ')}.`,
+                }
+              : null,
+          })
+          return
+        }
+
+        const [loadedPost, images, loadedComments] = await Promise.all([
+          getPostById(postId),
+          getPostImages(postId),
+          getCommentsByPost(postId),
+        ])
         if (!active) return
         setPost({ ...loadedPost, PostImages: images })
         setComments(loadedComments)
@@ -69,7 +180,7 @@ export default function PostDetail() {
     return () => {
       active = false
     }
-  }, [hasInvalidId, postId, retryCount])
+  }, [hasInvalidId, navigate, postId, retryCount])
 
   if (hasInvalidId) {
     return (
@@ -145,6 +256,15 @@ export default function PostDetail() {
           [ &lt;- volver_al_feed ]
         </Link>
       </header>
+
+      {migrationNotice && (
+        <p
+          role="status"
+          className="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 font-mono text-xs text-amber-200"
+        >
+          {migrationNotice}
+        </p>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.98 }}

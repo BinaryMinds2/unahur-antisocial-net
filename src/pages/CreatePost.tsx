@@ -1,7 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
-import type { Post, Tag } from '../types'
+import {
+  createPost,
+  createPostImage,
+  getApiErrorMessage,
+  getTags,
+} from '../services/api'
 
 const DEFAULT_IMAGES = [
   'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
@@ -25,9 +30,13 @@ export default function CreatePost() {
   const [imageUrl, setImageUrl] = useState('')
   const [useSuggestedImage, setUseSuggestedImage] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [savedPostId, setSavedPostId] = useState<number | null>(null)
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (isSubmitting || savedPostId !== null) return
 
     if (!user) {
       setStatus('Debés iniciar sesión para publicar.')
@@ -46,37 +55,60 @@ export default function CreatePost() {
       .filter(Boolean)
       .map((tag) => tag.replace(/^#/, ''))
 
-    const generatedId = Date.now()
     const resolvedImageUrl = imageUrl.trim() || (useSuggestedImage ? buildDefaultImage(tags) : '')
-    const newPost: Post = {
-      id: generatedId,
-      description: trimmedContent,
-      createdAt: new Date().toISOString(),
-      userId: user.id,
-      UserId: user.id,
-      User: user,
-      commentsCount: 0,
-      Tags: normalizedTags.map((tagName, index) => ({
-        id: generatedId + index + 1,
-        name: tagName,
-      } as Tag)),
-      PostImages: resolvedImageUrl
-        ? [
-            {
-              id: generatedId + 1000,
-              postId: generatedId,
-              url: resolvedImageUrl,
-            },
-          ]
-        : [],
+    setIsSubmitting(true)
+    setStatus(null)
+
+    try {
+      const availableTags = normalizedTags.length > 0 ? await getTags() : []
+      const matchedTags = normalizedTags.map((tagName) =>
+        availableTags.find(
+          (tag) => tag.name.toLowerCase() === tagName.toLowerCase(),
+        ),
+      )
+      const unknownTags = normalizedTags.filter(
+        (_, index) => !matchedTags[index],
+      )
+
+      if (unknownTags.length > 0) {
+        setStatus(
+          `Estas etiquetas no existen en el servidor: ${unknownTags.map((tag) => `#${tag}`).join(', ')}.`,
+        )
+        return
+      }
+
+      const createdPost = await createPost({
+        description: trimmedContent,
+        userId: user.id,
+        tagIds: matchedTags.flatMap((tag) => (tag ? [tag.id] : [])),
+      })
+
+      if (resolvedImageUrl) {
+        try {
+          await createPostImage({
+            postId: createdPost.id,
+            url: resolvedImageUrl,
+          })
+        } catch (imageError: unknown) {
+          setSavedPostId(createdPost.id)
+          setStatus(
+            `La publicación se guardó, pero no se pudo guardar la imagen: ${getApiErrorMessage(imageError, 'error desconocido')}`,
+          )
+          return
+        }
+      }
+
+      navigate('/')
+    } catch (requestError: unknown) {
+      setStatus(
+        getApiErrorMessage(
+          requestError,
+          'No se pudo guardar la publicación en el servidor.',
+        ),
+      )
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const storedPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
-    const nextPosts = [newPost, ...storedPosts].slice(0, 25)
-    localStorage.setItem('unahur_local_posts', JSON.stringify(nextPosts))
-
-    setStatus('Publicación creada y enviada a tu feed.')
-    navigate('/')
   }
 
   return (
@@ -152,15 +184,24 @@ export default function CreatePost() {
           </label>
 
           <div className="flex flex-col gap-4 border-t border-matrix-border/60 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="font-mono text-xs text-matrix-muted">
+            <div className="font-mono text-xs text-matrix-muted" role={status ? 'alert' : undefined}>
               {status ?? 'sin datos enviados aún'}
+              {savedPostId !== null && (
+                <Link
+                  to={`/post/${savedPostId}`}
+                  className="ml-2 text-matrix-accent underline"
+                >
+                  [ ver publicación ]
+                </Link>
+              )}
             </div>
 
             <button
               type="submit"
-              className="rounded border border-matrix-accent/60 bg-matrix-accent/10 px-5 py-2.5 font-mono text-sm font-bold uppercase tracking-wide text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.18)]"
+              disabled={isSubmitting || savedPostId !== null}
+              className="rounded border border-matrix-accent/60 bg-matrix-accent/10 px-5 py-2.5 font-mono text-sm font-bold uppercase tracking-wide text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              [ publicar ]
+              {isSubmitting ? '[ guardando... ]' : '[ publicar ]'}
             </button>
           </div>
         </form>

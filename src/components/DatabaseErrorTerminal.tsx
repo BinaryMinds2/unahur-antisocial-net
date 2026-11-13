@@ -1,4 +1,5 @@
 import { motion, type Variants } from 'motion/react'
+import { API_URL } from '../services/api'
 
 interface DatabaseErrorTerminalProps {
   error?: string
@@ -65,7 +66,7 @@ export default function DatabaseErrorTerminal({
         >
           <span>[CRITICAL_ERROR]</span>
           <span className="font-normal text-matrix-muted">
-            Connection refused at node_server...
+            No se pudo completar la solicitud a la API...
           </span>
         </motion.div>
 
@@ -75,12 +76,11 @@ export default function DatabaseErrorTerminal({
         >
           <p className="text-red-300">
             <span className="mr-2 font-bold text-red-500">&gt; [EN]:</span>
-            &quot;Oops... database is not working, failed to fetch&quot;
+            &quot;The API request failed.&quot;
           </p>
           <p className="text-matrix-text">
             <span className="mr-2 font-bold text-red-500">&gt; [ES]:</span>
-            &quot;Ups... la base de datos no está funcionando, falló la
-            conexión&quot;
+            &quot;No se pudo completar la solicitud al servidor.&quot;
           </p>
         </motion.div>
 
@@ -99,16 +99,16 @@ export default function DatabaseErrorTerminal({
           <p className="pl-3">
             1. Verificá que el servidor backend esté corriendo en{' '}
             <code className="rounded bg-black/50 px-1.5 py-0.5 text-matrix-accent">
-              localhost:3000
+              {API_URL}
             </code>
             .
           </p>
           <p className="pl-3">
             2. Ejecutá{' '}
             <code className="rounded bg-black/50 px-1.5 py-0.5 text-matrix-accent">
-              npm run dev
+              npm run dev:all
             </code>{' '}
-            en la terminal del proyecto backend.
+            en la terminal de este proyecto.
           </p>
         </motion.div>
 
