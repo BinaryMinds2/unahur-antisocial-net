@@ -123,7 +123,7 @@ export default function Home() {
               <span>&gt; SYSTEM_FEED</span>
               <span className="animate-pulse font-bold">_</span>
             </div>
-            <h1 className="flex items-center gap-2 font-mono text-xl font-bold tracking-wide text-matrix-text">
+            <h1 className="flex items-center gap-2 font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
               // publicaciones
             </h1>
           </div>

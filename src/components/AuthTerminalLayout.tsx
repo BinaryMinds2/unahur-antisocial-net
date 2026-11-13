@@ -129,7 +129,7 @@ export default function AuthTerminalLayout({
           </div>
 
           <div className="p-6">
-            <h2 className="mb-2 font-mono text-xl font-bold text-matrix-accent">{title}</h2>
+            <h2 className="mb-2 font-mono text-xl font-bold text-matrix-accent sm:text-2xl">{title}</h2>
             <p className="mb-6 font-mono text-xs text-matrix-muted">{description}</p>
             {children}
             {footer}

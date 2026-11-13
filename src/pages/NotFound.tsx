@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <section className="py-24 text-center font-mono">
       <p className="text-6xl font-bold text-matrix-accent">404</p>
-      <h1 className="mt-4 text-xl font-bold text-matrix-text">
+      <h1 className="mt-4 text-xl font-bold text-matrix-text sm:text-2xl">
         Esta ruta no existe en el sistema
       </h1>
       <p className="mt-2 text-sm text-matrix-muted">

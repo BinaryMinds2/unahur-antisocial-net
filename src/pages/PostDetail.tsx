@@ -245,7 +245,7 @@ export default function PostDetail() {
             <span>&gt; SYSTEM_POST_DETAIL</span>
             <span className="animate-pulse font-bold">_</span>
           </div>
-          <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text">
+          <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
             // publicación #{post.id}
           </h1>
         </div>

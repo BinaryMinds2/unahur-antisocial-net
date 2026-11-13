@@ -134,7 +134,7 @@ export default function CreatePost() {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 mx-auto max-w-2xl overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md transition-all duration-300 hover:border-matrix-accent/50"
+        className="relative z-10 mx-auto max-w-3xl overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md transition-all duration-300 hover:border-matrix-accent/50"
       >
         <div className="flex items-center justify-between border-b border-matrix-border bg-black/70 px-4 py-2.5">
           <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -143,7 +143,7 @@ export default function CreatePost() {
             <span className="h-3 w-3 rounded-full bg-green-500/80" />
           </div>
           <span className="font-mono text-xs text-matrix-muted">bash -- create_post.sh</span>
-          <div className="hidden items-center gap-1.5 rounded border border-matrix-border/60 bg-black/50 px-2.5 py-0.5 font-mono text-[11px] text-matrix-muted sm:flex">
+          <div className="hidden items-center gap-1.5 rounded border border-matrix-border/60 bg-black/50 px-2.5 py-0.5 font-mono text-xs text-matrix-muted sm:flex">
             <span className="h-2 w-2 animate-pulse rounded-full bg-matrix-accent" />
             <span>status: ready</span>
           </div>
@@ -155,7 +155,7 @@ export default function CreatePost() {
               <span>&gt; NEW_POST_PROTOCOL</span>
               <span className="animate-pulse font-bold">_</span>
             </div>
-            <h1 className="font-mono text-2xl font-bold tracking-wide text-matrix-text">
+            <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
               // crear publicación
             </h1>
           </div>
@@ -322,7 +322,7 @@ export default function CreatePost() {
               <button
                 type="submit"
                 disabled={isSubmitting || savedPostId !== null}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-matrix-accent bg-matrix-accent/20 px-5 py-2.5 font-mono text-xs font-bold text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all duration-200 hover:bg-matrix-accent hover:text-black hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-matrix-accent bg-matrix-accent/20 px-5 py-2.5 font-mono text-sm font-bold text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all duration-200 hover:bg-matrix-accent hover:text-black hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg
                   className="h-4 w-4"
@@ -347,4 +347,3 @@ export default function CreatePost() {
     </section>
   )
 }
-

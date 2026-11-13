@@ -41,7 +41,7 @@ export default function ConfirmActionModal({
               <button
                 type="button"
                 onClick={onConfirm}
-                className="rounded-full border border-matrix-accent bg-matrix-accent/10 px-7 py-3 font-mono text-base font-bold text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
+                className="rounded border border-matrix-accent bg-matrix-accent/10 px-3 py-2 font-mono text-sm font-bold text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
               >
                 {confirmLabel}
               </button>
@@ -49,7 +49,7 @@ export default function ConfirmActionModal({
               <button
                 type="button"
                 onClick={onCancel}
-                className="rounded-full border border-matrix-border bg-matrix-bg/70 px-7 py-3 font-mono text-base font-bold text-matrix-text transition hover:border-matrix-accent hover:text-matrix-accent"
+                className="rounded border border-matrix-border bg-matrix-bg/70 px-3 py-2 font-mono text-sm font-bold text-matrix-text transition hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
               >
                 {cancelLabel}
               </button>
