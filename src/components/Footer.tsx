@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import TerminalIcon from './TerminalIcon'
 
 export default function Footer() {
+  const { user } = useAuth()
+
   return (
     <footer className="border-t border-matrix-border bg-matrix-card">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between py-8">
@@ -28,12 +31,37 @@ export default function Footer() {
             >
               [ /inicio ]
             </Link>
-            <Link
-              to="/login"
-              className="transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-card"
-            >
-              [ /login ]
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/create-post"
+                  className="transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-card"
+                >
+                  [ +publicar ]
+                </Link>
+                <Link
+                  to="/profile"
+                  className="transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-card"
+                >
+                  [ /perfil ]
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-card"
+                >
+                  [ /login ]
+                </Link>
+                <Link
+                  to="/register"
+                  className="transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-card"
+                >
+                  [ /registrarse ]
+                </Link>
+              </>
+            )}
             <span className="text-matrix-border">|</span>
             <span>
               <span className="mr-2 inline-block h-2 w-2 rounded-full bg-matrix-accent shadow-[0_0_8px_theme(colors.matrix.accent)]" />

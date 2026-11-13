@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
@@ -8,10 +8,19 @@ import { useAuth } from '../context/useAuth'
 import { getApiErrorMessage } from '../services/api'
 
 export default function Login() {
+  const location = useLocation()
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const [nickName, setNickName] = useState('')
+  const [nickName, setNickName] = useState(() => {
+    const state = location.state
+    return typeof state === 'object' &&
+      state !== null &&
+      'prefillUser' in state &&
+      typeof state.prefillUser === 'string'
+      ? state.prefillUser
+      : ''
+  })
   const [password, setPassword] = useState('123456')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
+import { Link } from 'react-router-dom'
 import PostCard from '../components/PostCard'
 import { useAuth } from '../context/useAuth'
 import {
@@ -279,9 +280,61 @@ export default function Profile() {
         )}
 
         {!loading && !error && posts.length === 0 && (
-          <p className="font-mono text-matrix-muted">
-            // [ todavía no tenés publicaciones ]
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="relative mx-auto my-6 max-w-2xl overflow-hidden rounded-xl border border-dashed border-zinc-700/80 bg-zinc-900/40 p-8 text-center shadow-[0_0_30px_rgba(161,161,170,0.06)] backdrop-blur-md sm:p-10"
+          >
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-zinc-400/10 blur-[80px]" />
+
+            <div className="relative z-10 flex flex-col items-center space-y-4 font-mono">
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+                className="rounded-2xl border border-zinc-700/60 bg-zinc-800/60 p-4 text-zinc-400 shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-12 w-12 text-zinc-300/80 drop-shadow-[0_0_10px_rgba(212,212,216,0.2)]"
+                  aria-hidden="true"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path d="M10 9h.01" />
+                  <path d="M14 9h.01" />
+                  <path d="M12 3a7 7 0 0 1 7 7v1l1 0a2 2 0 1 1 0 4l-1 0v3l2 3h-10a6 6 0 0 1 -6 -5.775l0 -.226l-1 0a2 2 0 0 1 0 -4l1 0v-1a7 7 0 0 1 7 -7l0 .001" />
+                  <path d="M11 14h2a1 1 0 0 0 -2 0" />
+                </svg>
+              </motion.div>
+
+              <div className="flex items-center gap-1 text-xs text-zinc-500">
+                <span>&gt; EMPTY_POSTS_LOG</span>
+                <span className="animate-pulse font-bold">_</span>
+              </div>
+
+              <p className="max-w-md text-sm leading-relaxed text-zinc-300 sm:text-base">
+                Ups, no encontramos ninguna publicación hecha por vos.{' '}
+                <span className="block text-zinc-400 sm:inline">
+                  Subí algo, no seas aguafiestas.
+                </span>
+              </p>
+
+              <Link
+                className="mt-2 inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/80 px-4 py-2 text-xs font-bold text-zinc-300 transition-all duration-200 hover:border-matrix-accent hover:bg-matrix-accent/20 hover:text-matrix-accent"
+                to="/create-post"
+              >
+                <span>[ + crear_primera_publicacion ]</span>
+              </Link>
+            </div>
+          </motion.div>
         )}
 
         {!loading && !error && posts.length > 0 && (
