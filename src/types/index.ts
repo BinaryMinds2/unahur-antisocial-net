@@ -18,6 +18,7 @@ export interface PostImage {
 export interface Post {
   id: number
   description: string
+  createdAt?: string
   userId?: number
   UserId?: number
   User?: User

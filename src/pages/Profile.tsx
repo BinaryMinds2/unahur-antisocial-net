@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
 import PostCard from '../components/PostCard'
 import { useAuth } from '../context/useAuth'
 import {
@@ -11,6 +10,11 @@ import {
 } from '../services/api'
 import type { Post } from '../types'
 
+interface ProfileStats {
+  followers: string[]
+  following: string[]
+}
+
 const postsVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -20,24 +24,49 @@ const postsVariants: Variants = {
 }
 
 export default function Profile() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [profileStats, setProfileStats] = useState<ProfileStats>({
+    followers: ['@lucas', '@salir', '@maria'],
+    following: ['@sofia', '@nicolas', '@ana'],
+  })
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
-  }
+  useEffect(() => {
+    try {
+      const storedStats = localStorage.getItem('unahur_profile_stats')
+      if (storedStats) {
+        const parsed = JSON.parse(storedStats) as Partial<ProfileStats>
+        if (parsed.followers || parsed.following) {
+          setProfileStats({
+            followers: Array.isArray(parsed.followers) ? parsed.followers : profileStats.followers,
+            following: Array.isArray(parsed.following) ? parsed.following : profileStats.following,
+          })
+        }
+      }
+    } catch {
+      // Ignored; fallback to defaults below.
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('unahur_profile_stats', JSON.stringify(profileStats))
+  }, [profileStats])
 
   useEffect(() => {
     if (!user) return
 
     let active = true
 
-    getPostsByUser(user.id)
-      .then(async (loadedPosts) => {
+    const localPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
+    const filteredLocalPosts = (Array.isArray(localPosts) ? localPosts : []).filter(
+      (post) => post.userId === user.id || post.UserId === user.id,
+    )
+
+    const syncPosts = async () => {
+      try {
+        const loadedPosts = await getPostsByUser(user.id)
         const postsWithDetails = await Promise.all(
           loadedPosts.map(async (post) => {
             const [images, comments] = await Promise.all([
@@ -53,25 +82,31 @@ export default function Profile() {
           }),
         )
 
-        if (active) {
-          setPosts(postsWithDetails)
-        }
-      })
-      .catch((requestError: unknown) => {
-        if (active) {
-          setError(
-            getApiErrorMessage(
-              requestError,
-              'No se pudieron cargar tus publicaciones.',
-            ),
-          )
-        }
-      })
-      .finally(() => {
+        if (!active) return
+
+        const mergedPosts = [...filteredLocalPosts, ...postsWithDetails].sort(
+          (first, second) =>
+            new Date(second.createdAt ?? new Date()).getTime() -
+            new Date(first.createdAt ?? new Date()).getTime(),
+        )
+        setPosts(mergedPosts)
+      } catch (requestError: unknown) {
+        if (!active) return
+        setPosts(filteredLocalPosts)
+        setError(
+          getApiErrorMessage(
+            requestError,
+            'No se pudieron cargar tus publicaciones.',
+          ),
+        )
+      } finally {
         if (active) {
           setLoading(false)
         }
-      })
+      }
+    }
+
+    void syncPosts()
 
     return () => {
       active = false
@@ -96,13 +131,35 @@ export default function Profile() {
           </h1>
         </header>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded border border-matrix-accent/60 bg-green-700/60 px-5 py-2.5 font-mono text-sm font-bold text-white shadow-sm transition-all hover:bg-green-600 hover:shadow-[0_0_15px_rgba(0,204,82,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
-        >
-          [ cerrar_sesion ]
-        </button>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-matrix-border bg-matrix-card/60 p-4">
+            <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-matrix-accent/70">
+              seguidores
+            </p>
+            <p className="mb-3 font-mono text-2xl font-bold text-matrix-text">
+              {profileStats.followers.length}
+            </p>
+            <ul className="space-y-1 font-mono text-xs text-matrix-muted">
+              {profileStats.followers.map((follower) => (
+                <li key={follower}>- {follower}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-xl border border-matrix-border bg-matrix-card/60 p-4">
+            <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-matrix-accent/70">
+              seguidos
+            </p>
+            <p className="mb-3 font-mono text-2xl font-bold text-matrix-text">
+              {profileStats.following.length}
+            </p>
+            <ul className="space-y-1 font-mono text-xs text-matrix-muted">
+              {profileStats.following.map((following) => (
+                <li key={following}>- {following}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
         {loading && (
           <div className="space-y-4" aria-label="Cargando publicaciones" aria-busy="true">

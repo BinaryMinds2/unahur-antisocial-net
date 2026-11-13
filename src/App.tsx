@@ -5,13 +5,10 @@ import Navbar from './components/Navbar'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
-import Login from './pages/Login'       // <-- 1. Importá Login
-import Register from './pages/Register' // <-- 1. Importá Register
+import Login from './pages/Login'
+import Register from './pages/Register'
 import PostDetail from './pages/PostDetail'
-
-function PagePlaceholder({ title }: { title: string }) {
-  return <h1 className="py-8 text-2xl font-bold text-matrix-text">{title}</h1>
-}
+import CreatePost from './pages/CreatePost'
 
 function HomeRoute() {
   return <Home />
@@ -48,7 +45,7 @@ function App() {
               path="/create-post"
               element={
                 <ProtectedRoute>
-                  <PagePlaceholder title="Crear publicación" />
+                  <CreatePost />
                 </ProtectedRoute>
               }
             />

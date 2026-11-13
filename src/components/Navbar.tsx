@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import ConfirmActionModal from './ConfirmActionModal'
 import TerminalIcon from './TerminalIcon'
 
 const CHARS = '01#$@!%&*<>?/'
@@ -85,12 +86,12 @@ function NavigationItems({
   mobile,
   user,
   closeMenu,
-  logout,
+  setShowLogoutModal,
 }: {
   mobile: boolean
   user: { nickName: string } | null
   closeMenu: () => void
-  logout: () => void
+  setShowLogoutModal: (value: boolean) => void
 }) {
   const linkClass = mobile ? mobileNavLinkClass : navLinkClass
 
@@ -108,7 +109,7 @@ function NavigationItems({
             type="button"
             onClick={() => {
               closeMenu()
-              logout()
+              setShowLogoutModal(true)
             }}
             className={mobile ? mobileNavLinkClass({ isActive: false }) : navLinkClass({ isActive: false })}
           >
@@ -136,12 +137,26 @@ function NavigationItems({
 export default function Navbar() {
   const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const closeMenu = () => setIsOpen(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-matrix-border/80 bg-matrix-bg/85 backdrop-blur-md">
-      <nav className="py-4" aria-label="Navegación principal">
-        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6">
+    <>
+      <ConfirmActionModal
+        open={showLogoutModal}
+        title="¿Estás seguro que deseas salir?"
+        onConfirm={() => {
+          setShowLogoutModal(false)
+          logout()
+        }}
+        onCancel={() => {
+          setShowLogoutModal(false)
+        }}
+      />
+
+      <header className="sticky top-0 z-50 border-b border-matrix-border/80 bg-matrix-bg/85 backdrop-blur-md">
+        <nav className="py-4" aria-label="Navegación principal">
+          <div className="relative mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link
             to="/"
             className="group flex items-center gap-3 font-mono font-bold text-matrix-text transition-all hover:text-matrix-accent-hover hover:drop-shadow-[0_0_8px_rgba(0,204,82,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg"
@@ -181,7 +196,12 @@ export default function Navbar() {
           </button>
 
           <div className="hidden items-center gap-3 md:flex">
-            <NavigationItems mobile={false} user={user} closeMenu={closeMenu} logout={logout} />
+            <NavigationItems
+              mobile={false}
+              user={user}
+              closeMenu={closeMenu}
+              setShowLogoutModal={setShowLogoutModal}
+            />
           </div>
 
           <AnimatePresence>
@@ -193,7 +213,12 @@ export default function Navbar() {
                 className="absolute left-0 right-0 top-full z-50 mx-4 mt-2 rounded-xl border border-matrix-border/80 bg-matrix-card/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl md:hidden"
               >
                 <div className="flex flex-col gap-2">
-                  <NavigationItems mobile user={user} closeMenu={closeMenu} logout={logout} />
+                  <NavigationItems
+                    mobile
+                    user={user}
+                    closeMenu={closeMenu}
+                    setShowLogoutModal={setShowLogoutModal}
+                  />
                 </div>
                 <div className="mt-4 flex items-center gap-2 border-t border-matrix-border/50 pt-3 font-mono text-[10px] tracking-wider text-matrix-muted">
                   <motion.span
@@ -208,7 +233,8 @@ export default function Navbar() {
             )}
           </AnimatePresence>
         </div>
-      </nav>
-    </header>
+        </nav>
+      </header>
+    </>
   )
 }

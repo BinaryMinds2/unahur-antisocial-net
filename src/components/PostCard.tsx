@@ -49,6 +49,14 @@ export default function PostCard({ post }: PostCardProps) {
   const images = post.PostImages ?? post.images ?? []
   const commentsCount = post.commentsCount ?? post.comments?.length ?? 0
   const [failedImageIds, setFailedImageIds] = useState<number[]>([])
+  const [isFollowing, setIsFollowing] = useState(false)
+  const currentUser = JSON.parse(localStorage.getItem('unahur_user') ?? 'null') as { id?: number } | null
+  const isOwnPost =
+    currentUser &&
+    (post.User?.id === currentUser.id ||
+      post.user?.id === currentUser.id ||
+      post.UserId === currentUser.id ||
+      post.userId === currentUser.id)
   const visibleImages = images.filter(
     (image) => !failedImageIds.includes(image.id),
   )
@@ -74,9 +82,36 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="rounded-full border border-matrix-accent/30 bg-matrix-bg p-1.5 text-matrix-accent transition-colors group-hover:border-matrix-accent">
             <SpyAvatar className="h-6 w-6" />
           </div>
-          <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
-            @{user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}
-          </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
+              @{user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}
+            </span>
+            {!isOwnPost && !isFollowing ? (
+              <button
+                type="button"
+                onClick={() => setIsFollowing(true)}
+                className="shrink-0 rounded border border-matrix-accent/60 bg-matrix-accent/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
+                aria-label={`Seguir a ${user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}`}
+              >
+                [ +seguir ]
+              </button>
+            ) : null}
+            {!isOwnPost && isFollowing ? (
+              <button
+                type="button"
+                onClick={() => setIsFollowing(false)}
+                className="shrink-0 rounded border border-orange-400/70 bg-orange-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-orange-300 transition hover:border-orange-300 hover:bg-orange-500/20"
+                aria-label={`Dejar de seguir a ${user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}`}
+              >
+                [ dejar de seguir ]
+              </button>
+            ) : null}
+            {isOwnPost ? (
+              <span className="shrink-0 rounded border border-matrix-border/70 bg-matrix-bg/80 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-muted">
+                [ yo ]
+              </span>
+            ) : null}
+          </div>
         </div>
         <span className="shrink-0 font-mono text-xs text-matrix-muted">
           #POST-{String(post.id).padStart(3, '0')}

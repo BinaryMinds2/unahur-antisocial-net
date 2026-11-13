@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
 import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
 import { getCommentsByPost, getPostImages, getPosts } from '../services/api'
 import type { Post } from '../types'
+
+function getPostSortValue(post: Post): number {
+  if (post.createdAt) {
+    return new Date(post.createdAt).getTime()
+  }
+
+  return Number(post.id)
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -15,14 +23,29 @@ const containerVariants: Variants = {
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
+  const [localPosts, setLocalPosts] = useState<Post[]>([])
   const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
+  useEffect(() => {
+    try {
+      const storedPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
+      setLocalPosts(Array.isArray(storedPosts) ? storedPosts : [])
+    } catch {
+      setLocalPosts([])
+    }
+  }, [])
+
+  const mergedPosts = useMemo(
+    () => [...localPosts, ...posts].sort((first, second) => getPostSortValue(second) - getPostSortValue(first)),
+    [localPosts, posts],
+  )
+
   const availableTags = Array.from(
     new Map(
-      posts
+      mergedPosts
         .flatMap((post) => post.Tags ?? post.tags ?? [])
         .map((tag) => [tag.id, tag]),
     ).values(),
@@ -30,8 +53,8 @@ export default function Home() {
 
   const filteredPosts =
     selectedTagId === null
-      ? posts
-      : posts.filter((post) =>
+      ? mergedPosts
+      : mergedPosts.filter((post) =>
           (post.Tags ?? post.tags ?? []).some(
             (tag) => tag.id === selectedTagId,
           ),
@@ -63,6 +86,13 @@ export default function Home() {
       })
       .catch((requestError: unknown) => {
         if (active) {
+          try {
+            const storedPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
+            setPosts(Array.isArray(storedPosts) ? storedPosts : [])
+          } catch {
+            setPosts([])
+          }
+
           setError(
             requestError instanceof Error
               ? requestError.message
@@ -123,7 +153,7 @@ export default function Home() {
             }}
           />
         )}
-        {!loading && !error && posts.length === 0 && (
+        {!loading && !error && mergedPosts.length === 0 && (
           <p className="font-mono text-matrix-muted">
             // [ sin publicaciones para mostrar ]
           </p>
