@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useAuth } from '../context/useAuth'
+import type { Tag } from '../types'
 import {
   createPost,
   createPostImage,
@@ -36,16 +37,48 @@ export default function CreatePost() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [content, setContent] = useState('')
-  const [tags, setTags] = useState('')
+  const [availableTags, setAvailableTags] = useState<Tag[]>([])
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+  const [tagsLoading, setTagsLoading] = useState(true)
+  const [tagsError, setTagsError] = useState<string | null>(null)
+  const [tagLoadAttempt, setTagLoadAttempt] = useState(0)
   const [imageUrls, setImageUrls] = useState([''])
   const [useSuggestedImage, setUseSuggestedImage] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [savedPostId, setSavedPostId] = useState<number | null>(null)
-  const parsedTags = tags
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean)
+  const selectedTagNames = availableTags
+    .filter((tag) => selectedTagIds.includes(tag.id))
+    .map((tag) => tag.name)
+
+  useEffect(() => {
+    let active = true
+
+    getTags()
+      .then((tags) => {
+        if (active) {
+          setAvailableTags(tags)
+          setSelectedTagIds((current) =>
+            current.filter((id) => tags.some((tag) => tag.id === id)),
+          )
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setTagsError(
+            getApiErrorMessage(error, 'No se pudieron cargar las etiquetas.'),
+          )
+        }
+      })
+      .finally(() => {
+        if (active) setTagsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [tagLoadAttempt])
+
   const enteredImageUrls = imageUrls
     .map((url) => url.trim())
     .filter(Boolean)
@@ -53,7 +86,7 @@ export default function CreatePost() {
     enteredImageUrls.length > 0
       ? enteredImageUrls.filter(isValidImageUrl)
       : useSuggestedImage
-        ? [buildDefaultImage(tags)]
+        ? [buildDefaultImage(selectedTagNames.join(','))]
         : []
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -72,12 +105,6 @@ export default function CreatePost() {
       return
     }
 
-    const normalizedTags = tags
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean)
-      .map((tag) => tag.replace(/^#/, ''))
-
     const resolvedImageUrls = imageUrls
       .map((url) => url.trim())
       .filter(Boolean)
@@ -88,34 +115,17 @@ export default function CreatePost() {
     }
 
     if (resolvedImageUrls.length === 0 && useSuggestedImage) {
-      resolvedImageUrls.push(buildDefaultImage(tags))
+      resolvedImageUrls.push(buildDefaultImage(selectedTagNames.join(',')))
     }
 
     setIsSubmitting(true)
     setStatus(null)
 
     try {
-      const availableTags = normalizedTags.length > 0 ? await getTags() : []
-      const matchedTags = normalizedTags.map((tagName) =>
-        availableTags.find(
-          (tag) => tag.name.toLowerCase() === tagName.toLowerCase(),
-        ),
-      )
-      const unknownTags = normalizedTags.filter(
-        (_, index) => !matchedTags[index],
-      )
-
-      if (unknownTags.length > 0) {
-        setStatus(
-          `Estas etiquetas no existen en el servidor: ${unknownTags.map((tag) => `#${tag}`).join(', ')}.`,
-        )
-        return
-      }
-
       const createdPost = await createPost({
         description: trimmedContent,
         userId: user.id,
-        tagIds: matchedTags.flatMap((tag) => (tag ? [tag.id] : [])),
+        tagIds: selectedTagIds,
       })
 
       for (const [index, url] of resolvedImageUrls.entries()) {
@@ -201,31 +211,81 @@ export default function CreatePost() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="tags" className="font-mono text-sm text-matrix-text">
-                  etiquetas
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-matrix-accent">
-                    #
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-sm text-matrix-text">
+                    etiquetas (opcional)
                   </span>
-                  <input
-                    id="tags"
-                    value={tags}
-                    onChange={(event) => setTags(event.target.value)}
-                    placeholder="viajes, arte, cine"
-                    className="w-full rounded-lg border border-matrix-border bg-matrix-bg/90 py-3 pl-9 pr-3 font-mono text-sm text-matrix-text outline-none transition-all placeholder:text-matrix-muted/50 focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent"
-                  />
+                  <span className="font-mono text-[11px] text-matrix-muted">
+                    {selectedTagIds.length} seleccionada
+                    {selectedTagIds.length === 1 ? '' : 's'}
+                  </span>
                 </div>
-                {parsedTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {parsedTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded border border-matrix-accent/30 bg-matrix-accent/10 px-2 py-0.5 font-mono text-[11px] text-matrix-accent"
-                      >
-                        {tag.startsWith('#') ? tag : `#${tag}`}
-                      </span>
-                    ))}
+
+                {tagsLoading ? (
+                  <p
+                    role="status"
+                    className="rounded-lg border border-matrix-border bg-matrix-bg/70 px-3 py-3 font-mono text-xs text-matrix-muted"
+                  >
+                    [ cargando_etiquetas... ]
+                  </p>
+                ) : tagsError ? (
+                  <div
+                    role="alert"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/40 bg-red-950/20 px-3 py-3"
+                  >
+                    <span className="font-mono text-xs text-red-400">
+                      {tagsError}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTagsLoading(true)
+                        setTagsError(null)
+                        setTagLoadAttempt((attempt) => attempt + 1)
+                      }}
+                      className="rounded border border-red-500/50 px-2 py-1 font-mono text-xs text-red-300 transition-colors hover:bg-red-500/10"
+                    >
+                      [ reintentar ]
+                    </button>
+                  </div>
+                ) : availableTags.length === 0 ? (
+                  <p className="rounded-lg border border-matrix-border bg-matrix-bg/70 px-3 py-3 font-mono text-xs text-matrix-muted">
+                    No hay etiquetas disponibles en el servidor.
+                  </p>
+                ) : (
+                  <div
+                    role="group"
+                    aria-label="Seleccionar etiquetas"
+                    className="flex flex-wrap gap-2 rounded-lg border border-matrix-border/70 bg-black/30 p-3"
+                  >
+                    {availableTags.map((tag) => {
+                      const isSelected = selectedTagIds.includes(tag.id)
+
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() =>
+                            setSelectedTagIds((current) =>
+                              isSelected
+                                ? current.filter((id) => id !== tag.id)
+                                : [...current, tag.id],
+                            )
+                          }
+                          className={`rounded-full border px-3 py-1.5 font-mono text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent ${
+                            isSelected
+                              ? 'border-matrix-accent bg-matrix-accent/15 text-matrix-accent shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                              : 'border-matrix-border bg-matrix-bg/70 text-matrix-muted hover:border-matrix-accent/60 hover:text-matrix-text'
+                          }`}
+                        >
+                          <span aria-hidden="true">
+                            {isSelected ? '[x]' : '[+]'}
+                          </span>{' '}
+                          #{tag.name}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
