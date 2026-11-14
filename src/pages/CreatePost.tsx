@@ -37,7 +37,7 @@ export default function CreatePost() {
   const { user } = useAuth()
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [imageUrls, setImageUrls] = useState([''])
   const [useSuggestedImage, setUseSuggestedImage] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -46,9 +46,15 @@ export default function CreatePost() {
     .split(',')
     .map((tag) => tag.trim())
     .filter(Boolean)
-  const previewImageUrl = imageUrl.trim() || (useSuggestedImage ? buildDefaultImage(tags) : '')
-  const canPreviewImage =
-    useSuggestedImage || isValidImageUrl(imageUrl.trim())
+  const enteredImageUrls = imageUrls
+    .map((url) => url.trim())
+    .filter(Boolean)
+  const previewImageUrls =
+    enteredImageUrls.length > 0
+      ? enteredImageUrls.filter(isValidImageUrl)
+      : useSuggestedImage
+        ? [buildDefaultImage(tags)]
+        : []
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -72,7 +78,19 @@ export default function CreatePost() {
       .filter(Boolean)
       .map((tag) => tag.replace(/^#/, ''))
 
-    const resolvedImageUrl = imageUrl.trim() || (useSuggestedImage ? buildDefaultImage(tags) : '')
+    const resolvedImageUrls = imageUrls
+      .map((url) => url.trim())
+      .filter(Boolean)
+
+    if (resolvedImageUrls.some((url) => !isValidImageUrl(url))) {
+      setStatus('Cada imagen debe tener una URL válida que comience con http:// o https://.')
+      return
+    }
+
+    if (resolvedImageUrls.length === 0 && useSuggestedImage) {
+      resolvedImageUrls.push(buildDefaultImage(tags))
+    }
+
     setIsSubmitting(true)
     setStatus(null)
 
@@ -100,16 +118,16 @@ export default function CreatePost() {
         tagIds: matchedTags.flatMap((tag) => (tag ? [tag.id] : [])),
       })
 
-      if (resolvedImageUrl) {
+      for (const [index, url] of resolvedImageUrls.entries()) {
         try {
           await createPostImage({
             postId: createdPost.id,
-            url: resolvedImageUrl,
+            url,
           })
         } catch (imageError: unknown) {
           setSavedPostId(createdPost.id)
           setStatus(
-            `La publicación se guardó, pero no se pudo guardar la imagen: ${getApiErrorMessage(imageError, 'error desconocido')}`,
+            `La publicación se guardó, pero no se pudo guardar la imagen ${index + 1}: ${getApiErrorMessage(imageError, 'error desconocido')}`,
           )
           return
         }
@@ -212,42 +230,93 @@ export default function CreatePost() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="imageUrl" className="font-mono text-sm text-matrix-text">
-                  imagen (URL)
-                </label>
-                <div className="relative">
-                  <svg
-                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-matrix-accent"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-sm text-matrix-text">
+                    imágenes (URLs)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setImageUrls((current) => [...current, ''])}
+                    className="rounded border border-matrix-border px-3 py-1.5 font-mono text-xs text-matrix-accent transition-colors hover:border-matrix-accent"
                   >
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="m21 15-5-5L5 21" />
-                  </svg>
-                  <input
-                    id="imageUrl"
-                    value={imageUrl}
-                    onChange={(event) => setImageUrl(event.target.value)}
-                    placeholder="https://..."
-                    className="w-full rounded-lg border border-matrix-border bg-matrix-bg/90 py-3 pl-9 pr-3 font-mono text-sm text-matrix-text outline-none transition-all placeholder:text-matrix-muted/50 focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent"
-                  />
+                    [ + agregar imagen ]
+                  </button>
                 </div>
-                {canPreviewImage && previewImageUrl && (
-                  <img
-                    src={previewImageUrl}
-                    alt="Vista previa de la publicación"
-                    className="mt-2 h-28 w-full rounded-lg border border-matrix-border/80 object-cover"
-                    onError={(event) => {
-                      event.currentTarget.src = DEFAULT_IMAGES[0]
-                    }}
-                  />
+                <div className="space-y-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <label
+                        htmlFor={`imageUrl-${index}`}
+                        className="sr-only"
+                      >
+                        URL de la imagen {index + 1}
+                      </label>
+                      <div className="relative min-w-0 flex-1">
+                        <svg
+                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-matrix-accent"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.75"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                        <input
+                          id={`imageUrl-${index}`}
+                          type="url"
+                          value={url}
+                          onChange={(event) =>
+                            setImageUrls((current) =>
+                              current.map((currentUrl, currentIndex) =>
+                                currentIndex === index
+                                  ? event.target.value
+                                  : currentUrl,
+                              ),
+                            )
+                          }
+                          placeholder="https://..."
+                          className="w-full rounded-lg border border-matrix-border bg-matrix-bg/90 py-3 pl-9 pr-3 font-mono text-sm text-matrix-text outline-none transition-all placeholder:text-matrix-muted/50 focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent"
+                        />
+                      </div>
+                      {imageUrls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImageUrls((current) =>
+                              current.filter(
+                                (_, currentIndex) => currentIndex !== index,
+                              ),
+                            )
+                          }
+                          aria-label={`Quitar imagen ${index + 1}`}
+                          className="rounded border border-red-500/40 px-3 py-2 font-mono text-xs text-red-400 transition-colors hover:border-red-400"
+                        >
+                          [ x ]
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {previewImageUrls.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
+                    {previewImageUrls.map((previewUrl, index) => (
+                      <img
+                        key={`${previewUrl}-${index}`}
+                        src={previewUrl}
+                        alt={`Vista previa de imagen ${index + 1}`}
+                        className="h-28 w-full rounded-lg border border-matrix-border/80 object-cover"
+                        onError={(event) => {
+                          event.currentTarget.src = DEFAULT_IMAGES[0]
+                        }}
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
