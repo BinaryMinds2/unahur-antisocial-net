@@ -51,6 +51,18 @@ export default function CreatePost() {
     .filter((tag) => selectedTagIds.includes(tag.id))
     .map((tag) => tag.name)
 
+  const moveImage = (index: number, direction: -1 | 1) => {
+    setImageUrls((current) => {
+      const targetIndex = index + direction
+      if (targetIndex < 0 || targetIndex >= current.length) return current
+
+      const reordered = [...current]
+      const [imageUrl] = reordered.splice(index, 1)
+      reordered.splice(targetIndex, 0, imageUrl)
+      return reordered
+    })
+  }
+
   useEffect(() => {
     let active = true
 
@@ -298,6 +310,7 @@ export default function CreatePost() {
                   <button
                     type="button"
                     onClick={() => setImageUrls((current) => [...current, ''])}
+                    disabled={isSubmitting || savedPostId !== null}
                     className="rounded border border-matrix-border px-3 py-1.5 font-mono text-xs text-matrix-accent transition-colors hover:border-matrix-accent"
                   >
                     [ + agregar imagen ]
@@ -306,6 +319,12 @@ export default function CreatePost() {
                 <div className="space-y-2">
                   {imageUrls.map((url, index) => (
                     <div key={index} className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className="w-6 shrink-0 text-center font-mono text-xs text-matrix-accent"
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
                       <label
                         htmlFor={`imageUrl-${index}`}
                         className="sr-only"
@@ -344,6 +363,36 @@ export default function CreatePost() {
                           className="w-full rounded-lg border border-matrix-border bg-matrix-bg/90 py-3 pl-9 pr-3 font-mono text-sm text-matrix-text outline-none transition-all placeholder:text-matrix-muted/50 focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent"
                         />
                       </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveImage(index, -1)}
+                          disabled={
+                            index === 0 ||
+                            isSubmitting ||
+                            savedPostId !== null
+                          }
+                          aria-label={`Mover imagen ${index + 1} hacia arriba`}
+                          title="Mover arriba"
+                          className="rounded border border-matrix-border px-2 py-2 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          <span aria-hidden="true">↑</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveImage(index, 1)}
+                          disabled={
+                            index === imageUrls.length - 1 ||
+                            isSubmitting ||
+                            savedPostId !== null
+                          }
+                          aria-label={`Mover imagen ${index + 1} hacia abajo`}
+                          title="Mover abajo"
+                          className="rounded border border-matrix-border px-2 py-2 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          <span aria-hidden="true">↓</span>
+                        </button>
+                      </div>
                       {imageUrls.length > 1 && (
                         <button
                           type="button"
@@ -354,6 +403,7 @@ export default function CreatePost() {
                               ),
                             )
                           }
+                          disabled={isSubmitting || savedPostId !== null}
                           aria-label={`Quitar imagen ${index + 1}`}
                           className="rounded border border-red-500/40 px-3 py-2 font-mono text-xs text-red-400 transition-colors hover:border-red-400"
                         >

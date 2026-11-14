@@ -77,8 +77,13 @@ export const getTags = (): Promise<Tag[]> =>
 export const getCommentsByPost = (postId: number): Promise<Comment[]> =>
   requestApi(() => apiClient.get<unknown>(`/comments/post/${postId}`))
 
-export const getPostImages = (postId: number): Promise<PostImage[]> =>
-  requestApi(() => apiClient.get<unknown>(`/postimages/post/${postId}`))
+export const getPostImages = async (postId: number): Promise<PostImage[]> => {
+  const images = await requestApi<PostImage[]>(() =>
+    apiClient.get<unknown>(`/postimages/post/${postId}`),
+  )
+
+  return [...images].sort((first, second) => first.id - second.id)
+}
 
 export const createPost = (data: {
   description: string
