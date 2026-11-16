@@ -21,6 +21,8 @@ import {
 } from '../services/profileStats'
 import type { Post, Tag, User } from '../types'
 
+const WELCOME_DISMISSED_KEY = 'unahur_welcome_dismissed'
+
 function getPostSortValue(post: Post): number {
   if (post.createdAt) {
     return new Date(post.createdAt).getTime()
@@ -117,6 +119,9 @@ function getTagEntries(posts: Post[]) {
 
 export default function Home() {
   const { user } = useAuth()
+  const [isWelcomeDismissed, setIsWelcomeDismissed] = useState(
+    () => sessionStorage.getItem(WELCOME_DISMISSED_KEY) === 'true',
+  )
   const [posts, setPosts] = useState<Post[]>([])
   const [tagQuery, setTagQuery] = useState('')
   const [loading, setLoading] = useState(true)
@@ -181,6 +186,11 @@ export default function Home() {
           post.UserId === user.id,
       ).length
     : 0
+
+  const dismissWelcome = () => {
+    sessionStorage.setItem(WELCOME_DISMISSED_KEY, 'true')
+    setIsWelcomeDismissed(true)
+  }
 
   useEffect(() => {
     let active = true
@@ -359,6 +369,67 @@ export default function Home() {
         </aside>
 
         <main className="min-w-0 space-y-5">
+          {!user ? (
+            !isWelcomeDismissed && (
+              <motion.section
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md"
+              >
+                <div className="flex items-center justify-between border-b border-matrix-border bg-black/70 px-4 py-2.5">
+                  <div className="flex items-center gap-1.5" aria-hidden="true">
+                    <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                    <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                    <span className="h-3 w-3 rounded-full bg-green-500/80" />
+                  </div>
+                  <span className="font-mono text-xs text-matrix-muted">
+                    bash -- welcome_protocol.sh
+                  </span>
+                  <button
+                    type="button"
+                    onClick={dismissWelcome}
+                    className="rounded border border-matrix-border px-2 py-0.5 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+                    aria-label="Cerrar bienvenida"
+                  >
+                    [ × ]
+                  </button>
+                </div>
+
+                <div className="p-5 sm:p-6">
+                  <div className="space-y-2">
+                    <h2 className="font-mono text-base font-bold text-matrix-accent sm:text-lg">
+                      &gt; UNAHUR // ANTI-SOCIAL_NET
+                    </h2>
+                    <p className="font-mono text-xs leading-relaxed text-matrix-text sm:text-sm">
+                      Una red abierta, sin algoritmos adictivos ni ruido
+                      comercial.
+                      <br />
+                      Compartí ideas, apuntes y código con la comunidad UNAHUR.
+                    </p>
+                  </div>
+                </div>
+              </motion.section>
+            )
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="flex flex-col gap-3 rounded-xl border border-matrix-border bg-matrix-card/80 p-4 font-mono shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p className="min-w-0 break-words text-sm text-matrix-accent">
+                &gt; ¿Qué estás compilando hoy, @{user.nickName}?
+              </p>
+              <Link
+                to="/create-post"
+                className="w-fit shrink-0 rounded border border-matrix-accent bg-matrix-accent/20 px-4 py-2 text-xs font-bold text-matrix-accent transition-colors hover:bg-matrix-accent hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+              >
+                [ + nueva_publicacion ]
+              </Link>
+            </motion.div>
+          )}
+
           <header className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md transition-colors hover:border-matrix-accent/40">
             <div className="flex items-center justify-between border-b border-matrix-border bg-black/70 px-4 py-2.5">
               <div className="flex items-center gap-1.5" aria-hidden="true">
