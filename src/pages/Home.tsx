@@ -31,7 +31,9 @@ function getPostSortValue(post: Post): number {
 
 function readLocalPosts(): Post[] {
   try {
-    const storedPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
+    const storedPosts = JSON.parse(
+      localStorage.getItem('unahur_local_posts') ?? '[]',
+    ) as Post[]
     return Array.isArray(storedPosts) ? storedPosts : []
   } catch {
     return []
@@ -83,7 +85,7 @@ function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
         open={showAuthRequired}
         onClose={() => setShowAuthRequired(false)}
       />
-      <li className="flex items-center justify-between gap-2">
+      <li className="flex items-center justify-between gap-2 rounded-lg border border-matrix-border/50 bg-matrix-bg/60 px-2.5 py-2 transition-colors hover:border-matrix-accent/40">
         <div className="flex min-w-0 items-center gap-2">
           <TerminalIcon className="h-4 w-4 shrink-0 text-matrix-accent" />
           <span className="truncate font-mono text-xs text-matrix-text">
@@ -96,7 +98,7 @@ function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
           className={`shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] transition ${
             following
               ? 'border-orange-400/70 bg-orange-500/10 text-orange-300 hover:border-orange-300'
-              : 'border-matrix-accent/60 bg-matrix-accent/10 text-matrix-accent hover:border-matrix-accent'
+              : 'border-matrix-accent/60 bg-matrix-accent/10 text-matrix-accent hover:border-matrix-accent hover:bg-matrix-accent/20'
           }`}
         >
           {following ? '[ siguiendo ]' : '[ +seguir ]'}
@@ -121,7 +123,7 @@ function getTagEntries(posts: Post[]) {
 
   return [...tagCounts.values()]
     .sort((first, second) => second.count - first.count)
-    .slice(0, 4)
+    .slice(0, 6)
 }
 
 export default function Home() {
@@ -165,7 +167,10 @@ export default function Home() {
   }, [user?.id])
 
   const mergedPosts = useMemo(
-    () => [...localPosts, ...posts].sort((first, second) => getPostSortValue(second) - getPostSortValue(first)),
+    () =>
+      [...localPosts, ...posts].sort(
+        (first, second) => getPostSortValue(second) - getPostSortValue(first),
+      ),
     [localPosts, posts],
   )
 
@@ -217,7 +222,9 @@ export default function Home() {
       .catch((requestError: unknown) => {
         if (active) {
           try {
-            const storedPosts = JSON.parse(localStorage.getItem('unahur_local_posts') ?? '[]') as Post[]
+            const storedPosts = JSON.parse(
+              localStorage.getItem('unahur_local_posts') ?? '[]',
+            ) as Post[]
             setPosts(Array.isArray(storedPosts) ? storedPosts : [])
           } catch {
             setPosts([])
@@ -241,137 +248,240 @@ export default function Home() {
 
   return (
     <section className="relative min-h-[calc(100vh-80px)] w-full overflow-hidden bg-matrix-bg px-4 py-8">
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#10b9810a_1px,transparent_1px),linear-gradient(to_bottom,#10b9810a_1px,transparent_1px)] [background-size:3rem_3rem]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/4 z-0 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-matrix-accent/10 blur-[160px] animate-pulse" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#10b98114_1px,transparent_1px),linear-gradient(to_bottom,#10b98114_1px,transparent_1px)] [background-size:3rem_3rem]" />
+      <div className="pointer-events-none absolute left-1/2 top-28 z-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-matrix-accent/15 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-start justify-center gap-6 xl:grid-cols-[260px_minmax(0,720px)_260px]">
-        <aside className="sticky top-24 hidden space-y-4 xl:block">
-          <div className="space-y-4 rounded-xl border border-matrix-border bg-matrix-card/70 p-4 shadow-xl backdrop-blur-md">
-            <div className="font-mono text-xs text-matrix-accent">
-              &gt; NODE_IDENTITY_
+      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-start justify-center gap-6 lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,720px)_260px]">
+        <aside className="sticky top-24 hidden space-y-4 lg:block">
+          <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.07)] backdrop-blur-md transition-colors hover:border-matrix-accent/40">
+            <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+              <span>&gt; NODE_IDENTITY_</span>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-matrix-accent" />
             </div>
-            {user ? (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full border border-matrix-accent/30 bg-matrix-bg p-2 text-matrix-accent">
-                    <TerminalIcon className="h-6 w-6" />
+
+            <div className="space-y-4 p-4">
+              {user ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="group flex items-center gap-3 rounded-lg border border-transparent p-1 transition hover:border-matrix-accent/30 hover:bg-matrix-accent/5"
+                  >
+                    <div className="rounded-full border border-matrix-accent/50 bg-matrix-bg p-2 text-matrix-accent shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                      <TerminalIcon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block truncate font-mono text-sm font-bold text-matrix-text group-hover:text-matrix-accent">
+                        @{user.nickName}
+                      </span>
+                      <span className="block font-mono text-[10px] text-matrix-muted">
+                        ver_perfil -&gt;
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="grid grid-cols-2 gap-2 rounded-lg border border-matrix-border/60 bg-black/40 p-2.5 text-center font-mono">
+                    <div>
+                      <span className="block text-sm font-bold text-matrix-accent">
+                        {userPostCount}
+                      </span>
+                      <span className="text-[10px] uppercase text-matrix-muted">
+                        posts
+                      </span>
+                    </div>
+                    <div className="border-l border-matrix-border/60">
+                      <span className="block text-sm font-bold text-matrix-text">
+                        {profileStats.following.length}
+                      </span>
+                      <span className="text-[10px] uppercase text-matrix-muted">
+                        seguidos
+                      </span>
+                    </div>
                   </div>
-                  <span className="truncate font-mono text-sm text-matrix-text">
-                    @{user.nickName}
+
+                  <Link
+                    to="/create-post"
+                    className="block rounded-lg border border-matrix-accent/70 bg-matrix-accent/15 px-3 py-2 text-center font-mono text-xs font-bold text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.15)] transition hover:border-matrix-accent hover:bg-matrix-accent hover:text-black"
+                  >
+                    [ +publicar ]
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="block font-mono text-xs text-matrix-muted">
+                    [ MODO_INVITADO ]
                   </span>
-                </div>
-                <div className="flex gap-4 font-mono text-[10px] text-matrix-muted">
-                  <span>posts: {userPostCount}</span>
-                  <span>seguidos: {profileStats.following.length}</span>
-                </div>
-                <Link
-                  to="/create-post"
-                  className="block rounded border border-matrix-accent/60 bg-matrix-accent/10 px-2 py-1.5 text-center font-mono text-xs text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
-                >
-                  [ +publicar ]
-                </Link>
-              </>
-            ) : (
-              <>
-                <span className="block font-mono text-xs text-matrix-muted">
-                  [ MODO_INVITADO ]
-                </span>
-                <Link
-                  to="/login"
-                  className="block rounded border border-matrix-accent/60 bg-matrix-accent/10 px-2 py-1.5 text-center font-mono text-xs text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
-                >
-                  [ /iniciar_sesion ]
-                </Link>
-              </>
-            )}
+                  <Link
+                    to="/login"
+                    className="block rounded-lg border border-matrix-accent/60 bg-matrix-accent/10 px-3 py-2 text-center font-mono text-xs font-bold text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
+                  >
+                    [ /iniciar_sesion ]
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {topTags.length > 0 && (
-            <div className="space-y-3 rounded-xl border border-matrix-border bg-matrix-card/70 p-4 shadow-xl backdrop-blur-md">
-              <div className="font-mono text-xs text-matrix-accent">
-                &gt; TOP_TAGS_
+            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
+              <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+                <span>&gt; TOP_TAGS_</span>
+                {tagQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setTagQuery('')}
+                    className="text-[10px] text-matrix-muted transition hover:text-matrix-accent"
+                  >
+                    [ limpiar ]
+                  </button>
+                )}
               </div>
-              <ul>
-                {topTags.map(({ tag, count }) => (
-                  <li key={tag.id}>
-                    <button
-                      type="button"
-                      onClick={() => setTagQuery(`#${tag.name}`)}
-                      className="flex w-full items-center justify-between rounded px-2 py-1.5 font-mono text-xs transition-colors hover:bg-matrix-accent/10 hover:text-matrix-accent"
-                    >
-                      <span>#{tag.name}</span>
-                      <span className="text-matrix-muted">{count}</span>
-                    </button>
-                  </li>
+              <ul className="space-y-1 p-3">
+                {topTags.map(({ tag, count }) => {
+                  const isSelected =
+                    tagQuery.replace('#', '').toLowerCase().trim() ===
+                    tag.name.toLowerCase()
+                  return (
+                    <li key={tag.id}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTagQuery(isSelected ? '' : `#${tag.name}`)
+                        }
+                        className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-colors ${
+                          isSelected
+                            ? 'border-matrix-accent/60 bg-matrix-accent/15 text-matrix-accent'
+                            : 'border-transparent text-matrix-text hover:border-matrix-border hover:bg-matrix-accent/10 hover:text-matrix-accent'
+                        }`}
+                      >
+                        <span>#{tag.name}</span>
+                        <span className="rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-matrix-muted">
+                          {count}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+
+          {suggestedUsers.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md xl:hidden">
+              <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+                &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
+              </div>
+              <ul className="space-y-2 p-3">
+                {suggestedUsers.map((suggestedUser) => (
+                  <SuggestedUserRow
+                    key={suggestedUser.id}
+                    suggestedUser={suggestedUser}
+                  />
                 ))}
               </ul>
             </div>
           )}
         </aside>
 
-        <main className="min-w-0 space-y-6">
-          <header className="flex items-center justify-between rounded-xl border border-matrix-border bg-matrix-card/60 p-5 shadow-xl backdrop-blur-md">
-            <div>
-              <div className="mb-1 flex items-center gap-1 font-mono text-xs text-matrix-accent/80">
-                <span>&gt; SYSTEM_FEED</span>
-                <span className="animate-pulse font-bold">_</span>
+        <main className="min-w-0 space-y-5">
+          <header className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md transition-colors hover:border-matrix-accent/40">
+            <div className="flex items-center justify-between border-b border-matrix-border bg-black/70 px-4 py-2.5">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                <span className="h-3 w-3 rounded-full bg-green-500/80" />
               </div>
-              <h1 className="flex items-center gap-2 font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
-                // publicaciones
-              </h1>
+              <span className="font-mono text-xs text-matrix-muted">
+                bash -- system_feed.sh
+              </span>
+              <div className="flex items-center gap-1.5 rounded border border-matrix-accent/30 bg-matrix-accent/10 px-2.5 py-0.5 font-mono text-[11px] text-matrix-accent">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-matrix-accent" />
+                <span>ONLINE</span>
+              </div>
             </div>
-            <div className="hidden items-center gap-2 rounded border border-matrix-border/50 bg-black/40 px-3 py-1.5 font-mono text-xs text-matrix-muted sm:flex">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-matrix-accent" />
-              <span>NET_STATUS: ONLINE</span>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+              <div>
+                <div className="mb-1 flex items-center gap-1 font-mono text-xs text-matrix-accent">
+                  <span>&gt; SYSTEM_FEED</span>
+                  <span className="animate-pulse font-bold">_</span>
+                </div>
+                <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
+                  // publicaciones
+                </h1>
+              </div>
+
+              {!loading && !error && (
+                <div className="rounded-lg border border-matrix-border/70 bg-black/40 px-3 py-1.5 font-mono text-xs text-matrix-muted">
+                  registros:{' '}
+                  <span className="font-bold text-matrix-accent">
+                    {filteredPosts.length}
+                  </span>
+                </div>
+              )}
             </div>
           </header>
 
-          {!loading && !error && (
-            <div className="flex items-center justify-between gap-3">
-              <span className="whitespace-nowrap font-mono text-xs text-matrix-muted">
-                &gt; mostrando {filteredPosts.length} registros
-              </span>
-              <div className="relative w-full sm:w-64">
-                <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-matrix-accent">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-3.5 w-3.5"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                  </svg>
-                </span>
-                <input
-                  value={tagQuery}
-                  onChange={(event) => setTagQuery(event.target.value)}
-                  placeholder="filtrar_por_tag..."
-                  aria-label="Filtrar publicaciones por etiqueta"
-                  className="w-full rounded-lg border border-matrix-border bg-matrix-card/80 py-1.5 pl-9 pr-8 text-xs font-mono text-matrix-text outline-none backdrop-blur-md transition-all placeholder:text-matrix-muted/60 focus:border-matrix-accent focus:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                />
+          {!loading && !error && (tagQuery || topTags.length > 0) && (
+            <div
+              className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border border-matrix-border/80 bg-matrix-card/60 px-4 py-2.5 backdrop-blur-md ${
+                tagQuery ? '' : 'lg:hidden'
+              }`}
+            >
+              <div className="flex flex-wrap items-center gap-2">
                 {tagQuery && (
-                  <button
-                    type="button"
-                    aria-label="Limpiar filtro de etiqueta"
-                    onClick={() => setTagQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 font-mono text-sm text-matrix-muted transition hover:text-matrix-accent"
-                  >
-                    ×
-                  </button>
+                  <span className="font-mono text-xs text-matrix-muted">
+                    &gt; filtro_activo:{' '}
+                    <span className="font-bold text-matrix-accent">
+                      {tagQuery}
+                    </span>
+                  </span>
                 )}
+                {topTags.map(({ tag }) => {
+                  const isSelected =
+                    tagQuery.replace('#', '').toLowerCase().trim() ===
+                    tag.name.toLowerCase()
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() =>
+                        setTagQuery(isSelected ? '' : `#${tag.name}`)
+                      }
+                      className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] transition lg:hidden ${
+                        isSelected
+                          ? 'border-matrix-accent bg-matrix-accent/15 text-matrix-accent'
+                          : 'border-matrix-border bg-matrix-bg/70 text-matrix-muted hover:border-matrix-accent/50 hover:text-matrix-text'
+                      }`}
+                    >
+                      #{tag.name}
+                    </button>
+                  )
+                })}
               </div>
+
+              {tagQuery && (
+                <button
+                  type="button"
+                  onClick={() => setTagQuery('')}
+                  className="ml-auto rounded border border-matrix-accent/50 bg-matrix-accent/10 px-2.5 py-0.5 font-mono text-xs text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
+                >
+                  [ × limpiar_filtro ]
+                </button>
+              )}
             </div>
           )}
 
           {loading && (
-            <div className="space-y-4" aria-label="Cargando publicaciones" aria-busy="true">
+            <div
+              className="space-y-4"
+              aria-label="Cargando publicaciones"
+              aria-busy="true"
+            >
               {[1, 2, 3].map((skeleton) => (
-                <div key={skeleton} className="h-52 animate-pulse rounded-xl border border-matrix-border/50 bg-matrix-card/40" />
+                <div
+                  key={skeleton}
+                  className="h-52 animate-pulse rounded-xl border border-matrix-border/50 bg-matrix-card/40"
+                />
               ))}
             </div>
           )}
@@ -386,15 +496,18 @@ export default function Home() {
             />
           )}
           {!loading && !error && mergedPosts.length === 0 && (
-            <p className="font-mono text-matrix-muted">
+            <p className="rounded-xl border border-matrix-border bg-matrix-card/60 p-6 text-center font-mono text-sm text-matrix-muted">
               // [ sin publicaciones para mostrar ]
             </p>
           )}
-          {!loading && !error && mergedPosts.length > 0 && filteredPosts.length === 0 && (
-            <p className="font-mono text-matrix-muted">
-              // [ no hay publicaciones con esta etiqueta ]
-            </p>
-          )}
+          {!loading &&
+            !error &&
+            mergedPosts.length > 0 &&
+            filteredPosts.length === 0 && (
+              <p className="rounded-xl border border-matrix-border bg-matrix-card/60 p-6 text-center font-mono text-sm text-matrix-muted">
+                // [ no hay publicaciones con esta etiqueta ]
+              </p>
+            )}
 
           <motion.div
             variants={containerVariants}
@@ -407,8 +520,16 @@ export default function Home() {
                 key={post.id}
                 post={post}
                 onDeleted={(deletedPostId) => {
-                  setPosts((current) => current.filter((currentPost) => currentPost.id !== deletedPostId))
-                  setLocalPosts((current) => current.filter((currentPost) => currentPost.id !== deletedPostId))
+                  setPosts((current) =>
+                    current.filter(
+                      (currentPost) => currentPost.id !== deletedPostId,
+                    ),
+                  )
+                  setLocalPosts((current) =>
+                    current.filter(
+                      (currentPost) => currentPost.id !== deletedPostId,
+                    ),
+                  )
                 }}
               />
             ))}
@@ -417,13 +538,16 @@ export default function Home() {
 
         {suggestedUsers.length > 0 && (
           <aside className="sticky top-24 hidden xl:block">
-            <div className="space-y-3 rounded-xl border border-matrix-border bg-matrix-card/70 p-4 backdrop-blur-md">
-              <div className="font-mono text-xs text-matrix-accent">
+            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
+              <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
                 &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-2 p-3">
                 {suggestedUsers.map((suggestedUser) => (
-                  <SuggestedUserRow key={suggestedUser.id} suggestedUser={suggestedUser} />
+                  <SuggestedUserRow
+                    key={suggestedUser.id}
+                    suggestedUser={suggestedUser}
+                  />
                 ))}
               </ul>
             </div>
