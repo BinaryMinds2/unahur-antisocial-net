@@ -1,137 +1,115 @@
 import { useState } from 'react'
-import { motion } from 'motion/react'
 import { useAuth } from '../context/useAuth'
-import { createComment, getApiErrorMessage } from '../services/api'
-import type { Comment } from '../types'
+import { createComment, getApiErrorMessage } from '../services/api' // Ajustá la ruta según tu proyecto
 
 interface CommentFormProps {
   postId: number
-  onCreated: (comment: Comment) => void
+  onCommentAdded: () => void
 }
 
-const SendIcon = ({ className = 'h-4 w-4' }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    aria-hidden="true"
-  >
-    <path d="m22 2-7 20-4-9-9-4Z" />
-    <path d="M22 2 11 13" />
-  </svg>
-)
-
-export default function CommentForm({
-  postId,
-  onCreated,
-}: CommentFormProps) {
+export default function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
   const { user } = useAuth()
   const [content, setContent] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [submittedAttempt, setSubmittedAttempt] = useState(false)
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const trimmedContent = content.trim()
+  const trimmedContent = content.trim()
+  const contentError = !trimmedContent ? 'El comentario no puede estar vacío.' : null
 
-    if (!trimmedContent) {
-      setError('Escribí un comentario antes de enviarlo.')
-      return
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmittedAttempt(true)
+    setError('')
 
     if (!user) {
-      setError('Necesitás iniciar sesión para comentar.')
+      setError('Debés iniciar sesión para comentar.')
       return
     }
 
-    setError('')
-    setLoading(true)
+    if (contentError) {
+      document.getElementById('comment-content')?.focus()
+      return
+    }
+
+    setSubmitting(true)
 
     try {
-      const comment = await createComment({
-        postId,
+      // Ajustá esta llamada según cómo tengas tu servicio API
+      await createComment({
+        description: trimmedContent,
         userId: user.id,
-        content: trimmedContent,
+        postId: postId,
       })
-      onCreated({ ...comment, User: user })
+
       setContent('')
-    } catch (requestError: unknown) {
+      setSubmittedAttempt(false)
+      onCommentAdded() // Callback para recargar los comentarios en el componente padre
+    } catch (err: unknown) {
       setError(
-        getApiErrorMessage(
-          requestError,
-          'No se pudo publicar el comentario. Intentá nuevamente.',
-        ),
+        getApiErrorMessage(err, 'No se pudo enviar el comentario. Intentá nuevamente.')
       )
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="relative overflow-hidden rounded-xl border border-matrix-border/80 bg-matrix-card/75 p-4 shadow-[0_0_25px_rgba(0,0,0,0.3)] backdrop-blur-md"
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-matrix-accent/70 to-transparent" />
-      <div className="mb-3 flex items-center justify-between border-b border-matrix-border/60 pb-3">
-        <label
-          htmlFor="comment-content"
-          className="font-mono text-xs font-bold uppercase tracking-wider text-matrix-accent"
-        >
-          &gt; nuevo_comentario<span className="animate-pulse">_</span>
-        </label>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-matrix-muted">
-          input://comment
-        </span>
-      </div>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-3 font-mono text-sm text-matrix-accent/70">
-          &gt;
-        </span>
+    <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-3 rounded-lg border border-matrix-border/50 bg-black/30 p-4">
+      <label htmlFor="comment-content" className="flex items-center gap-1 font-mono text-xs text-matrix-accent">
+        <span>&gt; ADD_COMMENT</span>
+        <span className="animate-pulse font-bold">_</span>
+      </label>
+
+      {error && (
+        <p role="alert" className="font-mono text-xs text-red-400">
+          ! {error}
+        </p>
+      )}
+
+      <div>
         <textarea
           id="comment-content"
           value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder="Escribí tu comentario..."
+          onChange={(e) => {
+            setContent(e.target.value)
+            if (error) setError('')
+          }}
+          placeholder="Escribí un comentario..."
+          disabled={submitting || !user}
+          className={`min-h-[80px] w-full resize-y rounded border bg-matrix-bg/80 p-3 font-mono text-sm text-matrix-text outline-none transition-colors placeholder:text-matrix-muted/50 ${
+            submittedAttempt && contentError
+              ? 'border-red-500/80 focus:border-red-400 focus:ring-1 focus:ring-red-400'
+              : 'border-matrix-border focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent'
+          } ${!user ? 'cursor-not-allowed opacity-50' : ''}`}
           rows={3}
-          maxLength={500}
-          className="w-full resize-y rounded-lg border border-matrix-border bg-black/50 py-2 pl-8 pr-3 font-mono text-sm text-matrix-text placeholder-matrix-muted/40 transition-all focus:border-matrix-accent focus:outline-none focus:ring-1 focus:ring-matrix-accent focus:shadow-[0_0_18px_rgba(16,185,129,0.2)]"
-          disabled={loading}
         />
+        {submittedAttempt && contentError && (
+          <p role="alert" className="mt-1.5 font-mono text-xs text-red-400">
+            ! {contentError}
+          </p>
+        )}
       </div>
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, x: -4 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mt-2 font-mono text-xs text-red-400"
-        >
-          ! {error}
-        </motion.p>
-      )}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <span className="font-mono text-xs text-matrix-muted">
-          <span className={content.length === 500 ? 'text-amber-300' : 'text-matrix-accent'}>
-            {String(content.length).padStart(3, '0')}
+
+      <div className="flex items-center justify-between">
+        {!user ? (
+          <span className="font-mono text-xs text-amber-500">
+            // Iniciá sesión para comentar
           </span>
-          /500 chars
-        </span>
+        ) : (
+          <span className="font-mono text-xs text-matrix-muted">
+            {trimmedContent.length} chars
+          </span>
+        )}
+
         <button
           type="submit"
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg border border-matrix-accent/70 bg-matrix-accent/10 px-4 py-2 font-mono text-xs font-bold text-matrix-accent transition-all hover:bg-matrix-accent hover:text-black hover:shadow-[0_0_18px_rgba(16,185,129,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={submitting || !user}
+          className="rounded border border-matrix-accent/60 bg-matrix-accent/10 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wide text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <SendIcon className={loading ? 'h-4 w-4 animate-pulse' : 'h-4 w-4'} />
-          {loading ? '[ transmitiendo... ]' : '[ enviar_comentario ]'}
+          {submitting ? '[ enviando... ]' : '[ comentar ]'}
         </button>
       </div>
-    </motion.form>
+    </form>
   )
 }

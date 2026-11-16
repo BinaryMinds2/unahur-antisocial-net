@@ -1,15 +1,20 @@
 # UNAHUR - Anti-Social Net (TP2)
 
-Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite para la red anti-social, integrado con la API provista por la cátedra.
+Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite para la red anti-social, integrado con la API provista por la cátedra. Toda la interfaz fue diseñada con una estética inmersiva de terminal (Matrix/Cyberpunk).
 
 **API utilizada:** https://github.com/lucasfigarola/backend-api (corre en `http://localhost:3001`)
 
 ---
 
-## 📄 Enunciado del trabajo
+## 👥 Equipo (Binary Minds) - Integrantes
 
-<details>
-<summary>Ver objetivo y requisitos</summary>
+- Cristian Signorini
+- Augusto Morán
+- Analía Rossotti
+- Diego Goso
+- Lucas Sayago
+
+---
 
 ### Objetivo
 
@@ -21,26 +26,26 @@ Desarrollar en React el frontend de **UnaHur Anti-Social Net**, conectado a la A
 - **Registro:** validar los campos requeridos y enviar `POST /users`. Mostrar los errores que devuelva la API. Si el registro es exitoso, se puede redirigir al login o iniciar sesión directamente.
 - **Inicio / feed:** listar publicaciones recientes mostrando descripción, imágenes (si hay), etiquetas, cantidad de comentarios y un enlace al detalle `/post/:id`. También permite filtrar las publicaciones por etiqueta.
 - **Detalle de publicación:** mostrar descripción completa, imágenes, etiquetas y comentarios visibles. Incluir un formulario controlado para agregar comentarios mediante `POST /comments`.
-- **Perfil:** vista protegida que muestra el `nickName`, las publicaciones del usuario consultadas por `userId`, las imágenes, la cantidad de comentarios por publicación, enlaces al detalle y una opción para cerrar sesión. También contempla estados de carga, errores y usuarios sin publicaciones.
+- **Perfil:** vista protegida que muestra el `nickName`, las publicaciones del usuario consultadas por `userId`, las imágenes, la cantidad de comentarios por publicación, enlaces al detalle y un botón `[ /cerrar_sesion ]`. También contempla estados de carga, errores y usuarios sin publicaciones.
 - **Crear publicación:** vista protegida con descripción obligatoria, URLs de imágenes opcionales y selección de etiquetas obtenidas desde la API. Enviar `POST /posts` con `description`, `userId` y etiquetas; asociar cada imagen mediante `POST /postimages` con `url` y `postId`.
 
 ### Requisitos técnicos
 
-React + TypeScript; `useState`, `useEffect` y `useContext`; navegación y rutas protegidas con `react-router-dom`; formularios controlados; consumo REST con Fetch o Axios; diseño responsive; persistencia de sesión con `localStorage`; validaciones y mensajes de error/éxito.
+React + TypeScript; `useState`, `useEffect` y `useContext`; navegación y rutas protegidas con `react-router-dom`; formularios controlados; consumo REST con Fetch o Axios; diseño responsive; persistencia de sesión con `localStorage`; validaciones y mensajes de error/éxito inline con `noValidate`.
 
-### Funcionalidades implementadas
+### Funcionalidades implementadas (Bonus)
 
 Además de los requisitos principales, el proyecto ya cuenta con:
 
-- Filtro de publicaciones por etiquetas en Home.
-- Contadores de comentarios en las tarjetas de publicaciones.
+- Estética visual unificada estilo Terminal / Consola.
+- Filtro interactivo de publicaciones por etiquetas en el Home.
+- Contadores dinámicos de comentarios y caracteres en formularios.
+- Vista previa de imágenes antes de publicar.
 - Carga de imágenes asociadas a cada publicación.
-- Estados visuales de carga, errores y listas vacías.
-- Diseño responsive con menú de navegación móvil.
-- Animaciones de entrada e interacción en el feed y las tarjetas.
-- Rutas protegidas para perfil y creación de publicaciones.
-
-Como próximos extras opcionales se pueden agregar publicaciones destacadas o aleatorias, scroll infinito o paginación y alertas visuales. La contraseña dinámica con validación en el servidor es opcional únicamente para quienes cursan Estrategia de Persistencia.
+- Estados visuales de carga (`[ pending ]`), errores y listas vacías.
+- Diseño responsive.
+- Animaciones de entrada e interacción en el feed y las tarjetas (`motion/react`).
+- Prevención de envíos por defecto en todos los formularios (`noValidate` + feedback visual custom).
 
 ### API y endpoints de referencia
 
@@ -60,10 +65,6 @@ Repositorio: https://github.com/lucasfigarola/backend-api
 | POST | `/comments` | Crear comentario |
 | GET | `/postimages/post/:postId` | Listar imágenes de una publicación |
 | POST | `/postimages` | Asociar una imagen a una publicación |
-
-### Entrega
-
-Publicar el repositorio frontend en GitHub y enviar el enlace público a `lucas.figarola@unahur.edu.ar`, junto con los datos de las personas integrantes. Si se utiliza un backend propio de Estrategia de Persistencia, incluir también el enlace a ese repositorio.
 
 </details>
 
@@ -163,13 +164,3 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 | `npm run build` | Compilación de producción |
 | `npm run lint` | Chequeo de código |
 | `npm run preview` | Vista previa de la compilación |
-
----
-
-## 👥 Integrantes
-
-- Cristian Signorini
-- Augusto Morán
-- Analía Rossotti
-- Diego Goso
-- Lucas Sayago

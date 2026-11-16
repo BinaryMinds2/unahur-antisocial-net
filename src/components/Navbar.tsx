@@ -113,7 +113,7 @@ function NavigationItems({
             }}
             className={mobile ? mobileNavLinkClass({ isActive: false }) : navLinkClass({ isActive: false })}
           >
-            {mobile && '> '}[ /salir ]
+            {mobile && '> '}[ /cerrar_sesión ]
           </button>
         </>
       ) : (
