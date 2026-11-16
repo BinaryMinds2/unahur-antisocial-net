@@ -15,6 +15,7 @@ import type { Post } from '../types'
 interface PostCardProps {
   post: Post
   onDeleted?: (postId: number) => void
+  isDetail?: boolean
 }
 
 const postVariants: Variants = {
@@ -53,7 +54,7 @@ export function SpyAvatar({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-export default function PostCard({ post, onDeleted }: PostCardProps) {
+export default function PostCard({ post, onDeleted, isDetail = false }: PostCardProps) {
   const { user: authenticatedUser } = useAuth()
   const user = post.User ?? post.user ?? post.author
   const targetNickName =
@@ -287,12 +288,14 @@ export default function PostCard({ post, onDeleted }: PostCardProps) {
               [ eliminar ]
             </button>
           )}
-          <Link
-            to={`/post/${post.id}`}
-            className="flex items-center gap-1 font-semibold text-matrix-accent transition-transform group-hover:translate-x-0.5 hover:underline"
-          >
-            [ ver_detalle -&gt; ]
-          </Link>
+          {!isDetail && (
+            <Link
+              to={`/post/${post.id}`}
+              className="flex items-center gap-1 font-semibold text-matrix-accent transition-transform group-hover:translate-x-0.5 hover:underline"
+            >
+              [ ver_detalle -&gt; ]
+            </Link>
+          )}
         </div>
       </footer>
     </motion.article>

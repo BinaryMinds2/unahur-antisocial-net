@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import CommentForm from '../components/CommentForm'
+
 import CommentList from '../components/CommentList'
 import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
@@ -239,22 +240,40 @@ export default function PostDetail() {
 
   return (
     <DetailShell>
-      <header className="mb-6 flex items-center justify-between rounded-xl border border-matrix-border bg-matrix-card/60 p-5 shadow-xl backdrop-blur-md">
-        <div>
+      <header className="mb-6 flex flex-col overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md">
+        {/* Barra superior idéntica a CreatePost */}
+        <div className="flex items-center justify-between border-b border-matrix-border bg-black/70 px-4 py-2.5">
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            <span className="h-3 w-3 rounded-full bg-red-500/80" />
+            <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+            <span className="h-3 w-3 rounded-full bg-green-500/80" />
+          </div>
+          <span className="font-mono text-xs text-matrix-muted">
+            bash -- view_post.sh
+          </span>
+          <div className="w-10" />
+        </div>
+
+        {/* Contenido del encabezado con misma escala tipográfica */}
+        <div className="p-6 sm:p-8">
           <div className="mb-1 flex items-center gap-1 font-mono text-xs text-matrix-accent">
             <span>&gt; SYSTEM_POST_DETAIL</span>
             <span className="animate-pulse font-bold">_</span>
           </div>
-          <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
-            // publicación #{post.id}
-          </h1>
+
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <h1 className="font-mono text-xl font-bold tracking-wide text-matrix-text sm:text-2xl">
+              // publicación #{post.id}
+            </h1>
+
+            <Link
+              to="/"
+              className="flex w-fit items-center gap-1 font-mono text-xs text-matrix-accent hover:underline"
+            >
+              [ &lt; volver_al_feed ]
+            </Link>
+          </div>
         </div>
-        <Link
-          to="/"
-          className="flex items-center gap-1 font-mono text-xs text-matrix-accent hover:underline"
-        >
-          [ &lt;- volver_al_feed ]
-        </Link>
       </header>
 
       {migrationNotice && (
@@ -273,6 +292,7 @@ export default function PostDetail() {
       >
         <PostCard
           post={post}
+          isDetail={true}
           onDeleted={() => navigate('/', { replace: true })}
         />
       </motion.div>
