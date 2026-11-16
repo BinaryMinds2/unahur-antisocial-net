@@ -44,7 +44,7 @@ export default function CommentForm({ postId, onCreated }: CommentFormProps) {
 
       setContent('')
       setSubmittedAttempt(false)
-      onCreated(newComment)
+      onCreated({ ...newComment, User: user })
     } catch (err: unknown) {
       setError(
         getApiErrorMessage(err, 'No se pudo enviar el comentario. Intentá nuevamente.')

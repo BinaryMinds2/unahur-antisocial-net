@@ -92,16 +92,6 @@ export const createPost = (data: {
 }): Promise<Post> =>
   requestApi(() => apiClient.post<unknown>('/posts', data))
 
-export const deletePost = (
-  id: number,
-  userId: number,
-): Promise<{ message: string }> =>
-  requestApi(() =>
-    apiClient.delete<unknown>(
-      `/posts/${id}?userId=${encodeURIComponent(userId)}`,
-    ),
-  )
-
 export const createUser = (data: UserRegistrationData): Promise<User> =>
   requestApi(() => apiClient.post<unknown>('/users', data))
 
@@ -117,16 +107,6 @@ export const createPostImage = (data: {
   url: string
 }): Promise<PostImage> =>
   requestApi(() => apiClient.post<unknown>('/postimages', data))
-
-// Compatibility aliases for existing screens.
-export const fetchPosts = getPosts
-export const fetchUsers = getUsers
-export const fetchTags = getTags
-export const fetchComments = (postId?: number): Promise<Comment[]> =>
-  postId === undefined
-    ? requestApi(() => apiClient.get<unknown>('/comments'))
-    : getCommentsByPost(postId)
-export const fetchPostImages = getPostImages
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback

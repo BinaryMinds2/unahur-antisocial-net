@@ -62,11 +62,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return true
   }, [])
 
-  const authenticate = useCallback((authenticatedUser: User) => {
-    setUser(authenticatedUser)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser))
-  }, [])
-
   const register = useCallback(
     (data: UserRegistrationData) => createUser(data),
     [],
@@ -78,8 +73,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, login, authenticate, register, logout }),
-    [user, login, authenticate, register, logout],
+    () => ({ user, login, register, logout }),
+    [user, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

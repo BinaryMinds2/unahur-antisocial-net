@@ -29,17 +29,6 @@ function getPostSortValue(post: Post): number {
   return Number(post.id)
 }
 
-function readLocalPosts(): Post[] {
-  try {
-    const storedPosts = JSON.parse(
-      localStorage.getItem('unahur_local_posts') ?? '[]',
-    ) as Post[]
-    return Array.isArray(storedPosts) ? storedPosts : []
-  } catch {
-    return []
-  }
-}
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -112,7 +101,7 @@ function getTagEntries(posts: Post[]) {
   const tagCounts = new Map<string, { tag: Tag; count: number }>()
 
   posts.forEach((post) => {
-    ;(post.Tags ?? post.tags ?? []).forEach((tag) => {
+    ;(post.Tags ?? []).forEach((tag) => {
       const current = tagCounts.get(tag.name.toLowerCase())
       tagCounts.set(tag.name.toLowerCase(), {
         tag,
@@ -129,7 +118,6 @@ function getTagEntries(posts: Post[]) {
 export default function Home() {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
-  const [localPosts, setLocalPosts] = useState<Post[]>(readLocalPosts)
   const [tagQuery, setTagQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -168,10 +156,10 @@ export default function Home() {
 
   const mergedPosts = useMemo(
     () =>
-      [...localPosts, ...posts].sort(
+      [...posts].sort(
         (first, second) => getPostSortValue(second) - getPostSortValue(first),
       ),
-    [localPosts, posts],
+    [posts],
   )
 
   const filteredPosts = useMemo(() => {
@@ -179,7 +167,7 @@ export default function Home() {
     if (!normalizedQuery) return mergedPosts
 
     return mergedPosts.filter((post) =>
-      (post.Tags ?? post.tags ?? []).some((tag) =>
+      (post.Tags ?? []).some((tag) =>
         tag.name.toLowerCase().includes(normalizedQuery),
       ),
     )
@@ -190,10 +178,7 @@ export default function Home() {
     ? mergedPosts.filter(
         (post) =>
           post.User?.id === user.id ||
-          post.user?.id === user.id ||
-          post.author?.id === user.id ||
-          post.UserId === user.id ||
-          post.userId === user.id,
+          post.UserId === user.id,
       ).length
     : 0
 
@@ -221,15 +206,6 @@ export default function Home() {
       })
       .catch((requestError: unknown) => {
         if (active) {
-          try {
-            const storedPosts = JSON.parse(
-              localStorage.getItem('unahur_local_posts') ?? '[]',
-            ) as Post[]
-            setPosts(Array.isArray(storedPosts) ? storedPosts : [])
-          } catch {
-            setPosts([])
-          }
-
           setError(
             requestError instanceof Error
               ? requestError.message
@@ -519,18 +495,6 @@ export default function Home() {
               <PostCard
                 key={post.id}
                 post={post}
-                onDeleted={(deletedPostId) => {
-                  setPosts((current) =>
-                    current.filter(
-                      (currentPost) => currentPost.id !== deletedPostId,
-                    ),
-                  )
-                  setLocalPosts((current) =>
-                    current.filter(
-                      (currentPost) => currentPost.id !== deletedPostId,
-                    ),
-                  )
-                }}
               />
             ))}
           </motion.div>

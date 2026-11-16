@@ -13,7 +13,6 @@ import type { Tag } from '../types'
 const MIN_DESCRIPTION_LENGTH = 10
 const MAX_DESCRIPTION_LENGTH = 500
 const MAX_IMAGES = 4
-const REQUIRE_AT_LEAST_ONE_IMAGE = false
 
 function isValidHttpUrl(value: string): boolean {
   try {
@@ -91,11 +90,6 @@ export default function CreatePost() {
   const getImageRowErrors = (): Record<number, string> => {
     const errors: Record<number, string> = {}
     const seen = new Set<string>()
-
-    if (REQUIRE_AT_LEAST_ONE_IMAGE && validUrls.length === 0) {
-      errors[0] = 'Debés agregar al menos una imagen válida.'
-      return errors
-    }
 
     imageUrls.forEach((rawUrl, index) => {
       const url = rawUrl.trim()
@@ -444,12 +438,7 @@ export default function CreatePost() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span id="images-label" className="font-mono text-sm text-matrix-text">
-                  imágenes{' '}
-                  {REQUIRE_AT_LEAST_ONE_IMAGE ? (
-                    <span className="text-matrix-accent">*</span>
-                  ) : (
-                    '(URLs opcionales)'
-                  )}
+                  imágenes (URLs opcionales)
                 </span>
                 <span className="font-mono text-xs text-matrix-muted">
                   {validUrls.length} / {MAX_IMAGES} URLs

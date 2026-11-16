@@ -3,7 +3,6 @@ import { copyFileSync, existsSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import concurrently from 'concurrently'
-import { installBackendRoutes } from './install-backend-routes.js'
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url))
 const backendFolder = resolve(projectRoot, 'backend')
@@ -45,8 +44,6 @@ try {
     resolve(projectRoot, 'seed', 'seed.js'),
     resolve(backendDirectory, 'seed.js'),
   )
-
-  installBackendRoutes()
 
   // El seed borra la base: solo se ejecuta la primera vez o si se pide con --seed.
   if (forceSeed || !existsSync(seededMarker)) {

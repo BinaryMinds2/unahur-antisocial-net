@@ -2,19 +2,16 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
 import AuthRequiredModal from './AuthRequiredModal'
-import ConfirmActionModal from './ConfirmActionModal'
 import { useAuth } from '../context/useAuth'
 import {
   isFollowingUser,
   PROFILE_STATS_UPDATED,
   updateFollowing,
 } from '../services/profileStats'
-import { deletePost, getApiErrorMessage } from '../services/api'
 import type { Post } from '../types'
 
 interface PostCardProps {
   post: Post
-  onDeleted?: (postId: number) => void
   isDetail?: boolean
 }
 
@@ -54,31 +51,24 @@ export function SpyAvatar({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-export default function PostCard({ post, onDeleted, isDetail = false }: PostCardProps) {
+export default function PostCard({ post, isDetail = false }: PostCardProps) {
   const { user: authenticatedUser } = useAuth()
-  const user = post.User ?? post.user ?? post.author
+  const user = post.User
   const targetNickName =
-    user?.nickName ?? `usuario_${post.UserId ?? post.userId}`
-  const tags = post.Tags ?? post.tags ?? []
-  const images = post.PostImages ?? post.images ?? []
-  const commentsCount = post.commentsCount ?? post.comments?.length ?? 0
+    user?.nickName ?? `usuario_${post.UserId ?? 'anon'}`
+  const tags = post.Tags ?? []
+  const images = post.PostImages ?? []
+  const commentsCount = post.commentsCount ?? 0
   const [failedImageIds, setFailedImageIds] = useState<number[]>([])
   const [isFollowing, setIsFollowing] = useState(() =>
     isFollowingUser(targetNickName),
   )
   const [followError, setFollowError] = useState('')
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showAuthRequired, setShowAuthRequired] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
   const currentUser = authenticatedUser
   const isOwnPost =
     currentUser &&
-    (post.User?.id === currentUser.id ||
-      post.user?.id === currentUser.id ||
-      post.author?.id === currentUser.id ||
-      post.UserId === currentUser.id ||
-      post.userId === currentUser.id)
+    (post.User?.id === currentUser.id || post.UserId === currentUser.id)
   const visibleImages = images.filter(
     (image) => !failedImageIds.includes(image.id),
   )
@@ -124,53 +114,11 @@ export default function PostCard({ post, onDeleted, isDetail = false }: PostCard
     }
   }
 
-  const handleDelete = async () => {
-    if (!currentUser?.id || !isOwnPost) return
-
-    setIsDeleting(true)
-    setDeleteError('')
-    try {
-      const localPosts = JSON.parse(
-        localStorage.getItem('unahur_local_posts') ?? '[]',
-      ) as Post[]
-      const localPostExists = Array.isArray(localPosts)
-        ? localPosts.some((localPost) => localPost.id === post.id)
-        : false
-
-      if (localPostExists) {
-        localStorage.setItem(
-          'unahur_local_posts',
-          JSON.stringify(localPosts.filter((localPost) => localPost.id !== post.id)),
-        )
-      } else {
-        await deletePost(post.id, currentUser.id)
-      }
-
-      setShowDeleteConfirm(false)
-      onDeleted?.(post.id)
-    } catch (error: unknown) {
-      setDeleteError(
-        getApiErrorMessage(error, 'No se pudo eliminar la publicación.'),
-      )
-      setShowDeleteConfirm(false)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
     <>
     <AuthRequiredModal
       open={showAuthRequired}
       onClose={() => setShowAuthRequired(false)}
-    />
-    <ConfirmActionModal
-      open={showDeleteConfirm}
-      title={`¿Eliminar la publicación #${post.id}? Esta acción no se puede deshacer.`}
-      confirmLabel={isDeleting ? '[ / eliminando... ]' : '[ / eliminar ]'}
-      cancelLabel="[ / cancelar ]"
-      onConfirm={() => void handleDelete()}
-      onCancel={() => setShowDeleteConfirm(false)}
     />
     <motion.article
       layout
@@ -187,7 +135,7 @@ export default function PostCard({ post, onDeleted, isDetail = false }: PostCard
           </div>
           <div className="flex min-w-0 items-center gap-2">
             <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
-              @{user?.nickName ?? `usuario_${post.UserId ?? post.userId}`}
+              @{user?.nickName ?? `usuario_${post.UserId ?? 'anon'}`}
             </span>
             {!isOwnPost && (!authenticatedUser || !isFollowing) ? (
               <button
@@ -226,12 +174,6 @@ export default function PostCard({ post, onDeleted, isDetail = false }: PostCard
           ! {followError}
         </p>
       )}
-      {deleteError && (
-        <p role="alert" className="mt-2 font-mono text-xs text-red-400">
-          ! {deleteError}
-        </p>
-      )}
-
       <p className="my-3 text-sm leading-relaxed text-matrix-text sm:text-base">
         {post.description}
       </p>
@@ -278,16 +220,6 @@ export default function PostCard({ post, onDeleted, isDetail = false }: PostCard
           [ &gt; {commentsCount} comentarios ]
         </span>
         <div className="flex items-center gap-4">
-          {isOwnPost && (
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="font-semibold text-red-400 transition hover:text-red-300 hover:underline"
-              aria-label={`Eliminar publicación ${post.id}`}
-            >
-              [ eliminar ]
-            </button>
-          )}
           {!isDetail && (
             <Link
               to={`/post/${post.id}`}

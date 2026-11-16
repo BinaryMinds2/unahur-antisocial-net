@@ -20,8 +20,6 @@ import type { Post } from '../types'
 
 type ProfileList = 'followers' | 'following'
 
-const LOCAL_POSTS_KEY = 'unahur_local_posts'
-
 const postsVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -36,27 +34,6 @@ function getPostSortValue(post: Post): number {
   }
 
   return Number(post.id)
-}
-
-function readLocalPosts(): Post[] {
-  try {
-    const storedPosts = JSON.parse(
-      localStorage.getItem(LOCAL_POSTS_KEY) ?? '[]',
-    ) as Post[]
-    return Array.isArray(storedPosts) ? storedPosts : []
-  } catch {
-    return []
-  }
-}
-
-function isPostOwnedByUser(post: Post, userId: number): boolean {
-  return (
-    post.User?.id === userId ||
-    post.user?.id === userId ||
-    post.author?.id === userId ||
-    post.UserId === userId ||
-    post.userId === userId
-  )
 }
 
 export default function Profile() {
@@ -96,9 +73,6 @@ export default function Profile() {
     if (!user) return
 
     let active = true
-    const filteredLocalPosts = readLocalPosts().filter((post) =>
-      isPostOwnedByUser(post, user.id),
-    )
 
     const syncPosts = async () => {
       try {
@@ -120,23 +94,15 @@ export default function Profile() {
 
         if (!active) return
 
-        const seenIds = new Set<number>()
-        const mergedPosts = [...filteredLocalPosts, ...postsWithDetails]
-          .filter((post) => {
-            if (seenIds.has(post.id)) return false
-            seenIds.add(post.id)
-            return true
-          })
-          .sort(
-            (first, second) =>
-              getPostSortValue(second) - getPostSortValue(first),
-          )
+        const sortedPosts = postsWithDetails.sort(
+          (first, second) =>
+            getPostSortValue(second) - getPostSortValue(first),
+        )
 
         setError(null)
-        setPosts(mergedPosts)
+        setPosts(sortedPosts)
       } catch (requestError: unknown) {
         if (!active) return
-        setPosts(filteredLocalPosts)
         setError(
           getApiErrorMessage(
             requestError,
@@ -441,13 +407,6 @@ export default function Profile() {
                 <PostCard
                   key={post.id}
                   post={post}
-                  onDeleted={(deletedPostId) =>
-                    setPosts((current) =>
-                      current.filter(
-                        (currentPost) => currentPost.id !== deletedPostId,
-                      ),
-                    )
-                  }
                 />
               ))}
             </motion.div>

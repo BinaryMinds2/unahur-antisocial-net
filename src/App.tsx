@@ -10,10 +10,6 @@ import Register from './pages/Register'
 import PostDetail from './pages/PostDetail'
 import CreatePost from './pages/CreatePost'
 
-function HomeRoute() {
-  return <Home />
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -21,7 +17,7 @@ function App() {
         <Navbar />
         <main className="flex-1">
           <Routes>
-            <Route path="/" element={<HomeRoute />} />
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/post/:id" element={<PostDetail />} />
