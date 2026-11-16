@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, type Variants } from 'motion/react'
+import { AnimatePresence, motion, type Variants } from 'motion/react'
 import AuthRequiredModal from '../components/AuthRequiredModal'
 import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
@@ -22,6 +22,44 @@ import {
 import type { Post, Tag, User } from '../types'
 
 const WELCOME_DISMISSED_KEY = 'unahur_welcome_dismissed'
+
+type FortuneCategory = 'SLOGAN' | 'DATO_CURIOSO' | 'DEV_LOG'
+type FortuneItem = { category: FortuneCategory; text: string }
+
+const FORTUNE_ITEMS: FortuneItem[] = [
+  {
+    category: 'SLOGAN',
+    text: 'Menos scroll infinito; más ideas que valen la pena compartir.',
+  },
+  {
+    category: 'SLOGAN',
+    text: 'Una buena interfaz no grita: te ayuda a encontrar lo que buscás.',
+  },
+  {
+    category: 'SLOGAN',
+    text: 'Acá el algoritmo sos vos: seguí lo que te interesa.',
+  },
+  {
+    category: 'DEV_LOG',
+    text: 'Compiló a la primera. No toques nada y hacé un commit mental.',
+  },
+  {
+    category: 'DEV_LOG',
+    text: 'El bug no se fue: ahora está en una rama que nadie mira.',
+  },
+  {
+    category: 'DEV_LOG',
+    text: 'Funciona en mi máquina; ya es hora de presentarle a las demás.',
+  },
+  {
+    category: 'DATO_CURIOSO',
+    text: 'UNAHUR es la sigla de Universidad Nacional de Hurlingham.',
+  },
+  {
+    category: 'DATO_CURIOSO',
+    text: 'La universidad tiene su sede en Hurlingham, al oeste del Gran Buenos Aires.',
+  },
+]
 
 function getPostSortValue(post: Post): number {
   if (post.createdAt) {
@@ -154,6 +192,55 @@ function AboutUsCard({
   )
 }
 
+function FortuneWidget({
+  fortune,
+  onNext,
+  className = '',
+}: {
+  fortune: FortuneItem
+  onNext: () => void
+  className?: string
+}) {
+  return (
+    <section
+      className={`overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 backdrop-blur-md ${className}`}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-matrix-border/80 bg-black/60 px-3.5 py-2">
+        <span className="font-mono text-[11px] text-matrix-accent">
+          &gt; $ fortune_
+        </span>
+        <button
+          type="button"
+          onClick={onNext}
+          className="shrink-0 rounded border border-matrix-accent/50 bg-matrix-accent/10 px-2 py-1 font-mono text-[10px] text-matrix-accent transition-colors hover:border-matrix-accent hover:bg-matrix-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+        >
+          [ $ siguiente ]
+        </button>
+      </div>
+      <div className="space-y-2 p-3.5">
+        <span className="inline-flex rounded border border-matrix-accent/40 bg-matrix-accent/10 px-2 py-0.5 font-mono text-[10px] text-matrix-accent">
+          [ {fortune.category} ]
+        </span>
+        <AnimatePresence
+          mode="wait"
+          initial={false}
+        >
+          <motion.p
+            key={fortune.text}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="min-h-[3rem] font-mono text-xs leading-relaxed text-matrix-text"
+          >
+            {fortune.text}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+    </section>
+  )
+}
+
 function getTagEntries(posts: Post[]) {
   const tagCounts = new Map<string, { tag: Tag; count: number }>()
 
@@ -184,6 +271,9 @@ export default function Home() {
   const [retryCount, setRetryCount] = useState(0)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [totalUsersCount, setTotalUsersCount] = useState(0)
+  const [fortuneIndex, setFortuneIndex] = useState(() =>
+    Math.floor(Math.random() * FORTUNE_ITEMS.length),
+  )
   const [profileStats, setProfileStats] = useState<ProfileStats>(getProfileStats)
 
   useEffect(() => {
@@ -248,6 +338,7 @@ export default function Home() {
       ).size,
     [mergedPosts],
   )
+  const currentFortune = FORTUNE_ITEMS[fortuneIndex]
   const userPostCount = user
     ? mergedPosts.filter(
         (post) =>
@@ -259,6 +350,14 @@ export default function Home() {
   const dismissWelcome = () => {
     sessionStorage.setItem(WELCOME_DISMISSED_KEY, 'true')
     setIsWelcomeDismissed(true)
+  }
+
+  const nextFortune = () => {
+    setFortuneIndex((currentIndex) => {
+      const offset =
+        1 + Math.floor(Math.random() * (FORTUNE_ITEMS.length - 1))
+      return (currentIndex + offset) % FORTUNE_ITEMS.length
+    })
   }
 
   useEffect(() => {
@@ -302,11 +401,11 @@ export default function Home() {
   }, [retryCount])
 
   return (
-    <section className="relative min-h-[calc(100vh-80px)] w-full overflow-hidden bg-matrix-bg px-4 py-8">
+    <section className="relative min-h-[calc(100vh-80px)] w-full overflow-x-clip bg-matrix-bg px-4 py-8">
       <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#10b98114_1px,transparent_1px),linear-gradient(to_bottom,#10b98114_1px,transparent_1px)] [background-size:3rem_3rem]" />
       <div className="pointer-events-none absolute left-1/2 top-28 z-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-matrix-accent/15 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
+      <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
         <aside className="hidden space-y-4 lg:block">
           <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.07)] backdrop-blur-md transition-colors hover:border-matrix-accent/40">
             <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
@@ -376,71 +475,78 @@ export default function Home() {
             </div>
           </div>
 
-          {topTags.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
-              <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
-                <span>&gt; TOP_TAGS_</span>
-                {tagQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setTagQuery('')}
-                    className="text-[10px] text-matrix-muted transition hover:text-matrix-accent"
-                  >
-                    [ limpiar ]
-                  </button>
-                )}
-              </div>
-              <ul className="space-y-1 p-3">
-                {topTags.map(({ tag, count }) => {
-                  const isSelected =
-                    tagQuery.replace('#', '').toLowerCase().trim() ===
-                    tag.name.toLowerCase()
-                  return (
-                    <li key={tag.id}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setTagQuery(isSelected ? '' : `#${tag.name}`)
-                        }
-                        className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-colors ${
-                          isSelected
-                            ? 'border-matrix-accent/60 bg-matrix-accent/15 text-matrix-accent'
-                            : 'border-transparent text-matrix-text hover:border-matrix-border hover:bg-matrix-accent/10 hover:text-matrix-accent'
-                        }`}
-                      >
-                        <span>#{tag.name}</span>
-                        <span className="rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-matrix-muted">
-                          {count}
-                        </span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          )}
-
-          {suggestedUsers.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
-              <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
-                &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
-              </div>
-              <ul className="space-y-2 p-3">
-                {suggestedUsers.map((suggestedUser) => (
-                  <SuggestedUserRow
-                    key={suggestedUser.id}
-                    suggestedUser={suggestedUser}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
-
           <AboutUsCard
             postCount={mergedPosts.length}
             userCount={totalUsersCount}
             tagCount={uniqueTagsCount}
           />
+          <FortuneWidget
+            fortune={currentFortune}
+            onNext={nextFortune}
+            className="hidden xl:block"
+          />
+
+          <div className="space-y-4 lg:sticky lg:top-24">
+            {topTags.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
+                <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+                  <span>&gt; TOP_TAGS_</span>
+                  {tagQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setTagQuery('')}
+                      className="text-[10px] text-matrix-muted transition hover:text-matrix-accent"
+                    >
+                      [ limpiar ]
+                    </button>
+                  )}
+                </div>
+                <ul className="space-y-1 p-3">
+                  {topTags.map(({ tag, count }) => {
+                    const isSelected =
+                      tagQuery.replace('#', '').toLowerCase().trim() ===
+                      tag.name.toLowerCase()
+                    return (
+                      <li key={tag.id}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTagQuery(isSelected ? '' : `#${tag.name}`)
+                          }
+                          className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-colors ${
+                            isSelected
+                              ? 'border-matrix-accent/60 bg-matrix-accent/15 text-matrix-accent'
+                              : 'border-transparent text-matrix-text hover:border-matrix-border hover:bg-matrix-accent/10 hover:text-matrix-accent'
+                          }`}
+                        >
+                          <span>#{tag.name}</span>
+                          <span className="rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-matrix-muted">
+                            {count}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {suggestedUsers.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
+                <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+                  &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
+                </div>
+                <ul className="space-y-2 p-3">
+                  {suggestedUsers.map((suggestedUser) => (
+                    <SuggestedUserRow
+                      key={suggestedUser.id}
+                      suggestedUser={suggestedUser}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </aside>
 
         <main className="min-w-0 space-y-5">
@@ -650,6 +756,11 @@ export default function Home() {
             tagCount={uniqueTagsCount}
             compact
             className="lg:hidden"
+          />
+          <FortuneWidget
+            fortune={currentFortune}
+            onNext={nextFortune}
+            className="xl:hidden"
           />
         </main>
       </div>
