@@ -99,6 +99,61 @@ function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
   )
 }
 
+function AboutUsCard({
+  postCount,
+  userCount,
+  tagCount,
+  compact = false,
+  className = '',
+}: {
+  postCount: number
+  userCount: number
+  tagCount: number
+  compact?: boolean
+  className?: string
+}) {
+  const metrics = [
+    { label: 'posts', value: postCount },
+    { label: 'nodos', value: userCount },
+    { label: 'tags', value: tagCount },
+  ]
+
+  return (
+    <section
+      className={`overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 backdrop-blur-md ${className}`}
+    >
+      <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
+        &gt; cat /etc/about_unahur.md
+      </div>
+      <p
+        className={`font-sans text-[10px] leading-relaxed text-matrix-text ${
+          compact ? 'px-3 py-2' : 'p-3.5'
+        }`}
+      >
+        Red abierta de Binary Minds para Construcción de Interfaces de Usuario
+        (UNAHUR): avances, recursos y debates sin ruido comercial.
+      </p>
+      <div className="grid grid-cols-3 divide-x divide-matrix-border/60 border-t border-matrix-border/60">
+        {metrics.map(({ label, value }) => (
+          <div
+            key={label}
+            className={`flex flex-col items-center gap-1 ${
+              compact ? 'py-2' : 'py-3'
+            }`}
+          >
+            <span className="font-mono text-lg font-bold text-matrix-accent">
+              {value}
+            </span>
+            <span className="font-mono text-[10px] text-matrix-muted">
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function getTagEntries(posts: Post[]) {
   const tagCounts = new Map<string, { tag: Tag; count: number }>()
 
@@ -128,6 +183,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
+  const [totalUsersCount, setTotalUsersCount] = useState(0)
   const [profileStats, setProfileStats] = useState<ProfileStats>(getProfileStats)
 
   useEffect(() => {
@@ -146,12 +202,16 @@ export default function Home() {
     getUsers()
       .then((users) => {
         if (!active) return
+        setTotalUsersCount(users.length)
         const availableUsers = users.filter((candidate) => candidate.id !== user?.id)
         const shuffledUsers = [...availableUsers].sort(() => Math.random() - 0.5)
         setSuggestedUsers(shuffledUsers.slice(0, 3))
       })
       .catch(() => {
-        if (active) setSuggestedUsers([])
+        if (active) {
+          setSuggestedUsers([])
+          setTotalUsersCount(0)
+        }
       })
 
     return () => {
@@ -179,6 +239,15 @@ export default function Home() {
   }, [mergedPosts, tagQuery])
 
   const topTags = useMemo(() => getTagEntries(mergedPosts), [mergedPosts])
+  const uniqueTagsCount = useMemo(
+    () =>
+      new Set(
+        mergedPosts.flatMap((post) =>
+          (post.Tags ?? []).map((tag) => tag.name.toLowerCase()),
+        ),
+      ).size,
+    [mergedPosts],
+  )
   const userPostCount = user
     ? mergedPosts.filter(
         (post) =>
@@ -237,8 +306,8 @@ export default function Home() {
       <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#10b98114_1px,transparent_1px),linear-gradient(to_bottom,#10b98114_1px,transparent_1px)] [background-size:3rem_3rem]" />
       <div className="pointer-events-none absolute left-1/2 top-28 z-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-matrix-accent/15 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-start justify-center gap-6 lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,720px)_260px]">
-        <aside className="sticky top-24 hidden space-y-4 lg:block">
+      <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
+        <aside className="hidden space-y-4 lg:block">
           <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.07)] backdrop-blur-md transition-colors hover:border-matrix-accent/40">
             <div className="flex items-center justify-between border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
               <span>&gt; NODE_IDENTITY_</span>
@@ -352,7 +421,7 @@ export default function Home() {
           )}
 
           {suggestedUsers.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md xl:hidden">
+            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
               <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
                 &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
               </div>
@@ -366,6 +435,12 @@ export default function Home() {
               </ul>
             </div>
           )}
+
+          <AboutUsCard
+            postCount={mergedPosts.length}
+            userCount={totalUsersCount}
+            tagCount={uniqueTagsCount}
+          />
         </aside>
 
         <main className="min-w-0 space-y-5">
@@ -569,25 +644,14 @@ export default function Home() {
               />
             ))}
           </motion.div>
+          <AboutUsCard
+            postCount={mergedPosts.length}
+            userCount={totalUsersCount}
+            tagCount={uniqueTagsCount}
+            compact
+            className="lg:hidden"
+          />
         </main>
-
-        {suggestedUsers.length > 0 && (
-          <aside className="sticky top-24 hidden xl:block">
-            <div className="overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/80 shadow-[0_0_25px_rgba(16,185,129,0.06)] backdrop-blur-md">
-              <div className="border-b border-matrix-border/80 bg-black/60 px-3.5 py-2 font-mono text-[11px] text-matrix-accent">
-                &gt; SUGERIDOS_RED<span className="animate-pulse">_</span>
-              </div>
-              <ul className="space-y-2 p-3">
-                {suggestedUsers.map((suggestedUser) => (
-                  <SuggestedUserRow
-                    key={suggestedUser.id}
-                    suggestedUser={suggestedUser}
-                  />
-                ))}
-              </ul>
-            </div>
-          </aside>
-        )}
       </div>
     </section>
   )
