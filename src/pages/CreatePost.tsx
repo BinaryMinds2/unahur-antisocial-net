@@ -211,6 +211,21 @@ export default function CreatePost() {
     setBrokenImages({})
   }
 
+  const moveImageRow = (index: number, direction: -1 | 1) => {
+    setImageUrls((currentUrls) => {
+      const targetIndex = index + direction
+      if (targetIndex < 0 || targetIndex >= currentUrls.length) return currentUrls
+
+      const reorderedUrls = [...currentUrls]
+      ;[reorderedUrls[index], reorderedUrls[targetIndex]] = [
+        reorderedUrls[targetIndex],
+        reorderedUrls[index],
+      ]
+      return reorderedUrls
+    })
+    setBrokenImages({})
+  }
+
   const toggleTag = (tagId: number) => {
     setSelectedTagIds((currentTagIds) =>
       currentTagIds.includes(tagId)
@@ -483,14 +498,34 @@ export default function CreatePost() {
                           }`}
                         />
                         {imageUrls.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeImageRow(index)}
-                            className="rounded border border-red-500/40 px-3 py-2 font-mono text-xs text-red-400 transition-colors hover:border-red-400"
-                            aria-label={`Eliminar URL de imagen ${index + 1}`}
-                          >
-                            [ quitar ]
-                          </button>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => moveImageRow(index, -1)}
+                              disabled={index === 0}
+                              className="rounded border border-matrix-border px-2 py-2 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent disabled:cursor-not-allowed disabled:opacity-30"
+                              aria-label={`Mover imagen ${index + 1} hacia arriba`}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveImageRow(index, 1)}
+                              disabled={index === imageUrls.length - 1}
+                              className="rounded border border-matrix-border px-2 py-2 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent disabled:cursor-not-allowed disabled:opacity-30"
+                              aria-label={`Mover imagen ${index + 1} hacia abajo`}
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeImageRow(index)}
+                              className="rounded border border-red-500/40 px-3 py-2 font-mono text-xs text-red-400 transition-colors hover:border-red-400"
+                              aria-label={`Eliminar URL de imagen ${index + 1}`}
+                            >
+                              [ quitar ]
+                            </button>
+                          </div>
                         )}
                       </div>
 
