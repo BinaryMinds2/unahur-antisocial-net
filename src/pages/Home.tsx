@@ -71,6 +71,19 @@ function getPostSortValue(post: Post): number {
   return Number(post.id)
 }
 
+function shuffleUsers(users: User[]): User[] {
+  const shuffledUsers = [...users]
+
+  for (let index = shuffledUsers.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const userAtIndex = shuffledUsers[index]
+    shuffledUsers[index] = shuffledUsers[randomIndex]
+    shuffledUsers[randomIndex] = userAtIndex
+  }
+
+  return shuffledUsers
+}
+
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -121,9 +134,12 @@ function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
       <li className="flex items-center justify-between gap-2 rounded-lg border border-matrix-border/50 bg-matrix-bg/60 px-2.5 py-2 transition-colors hover:border-matrix-accent/40">
         <div className="flex min-w-0 items-center gap-2">
           <TerminalIcon className="h-4 w-4 shrink-0 text-matrix-accent" />
-          <span className="truncate font-mono text-xs text-matrix-text">
+          <Link
+            to={`/profile/${suggestedUser.id}`}
+            className="truncate font-mono text-xs text-matrix-text transition-colors hover:text-matrix-accent"
+          >
             @{suggestedUser.nickName}
-          </span>
+          </Link>
         </div>
         <button
           type="button"
@@ -301,14 +317,40 @@ export default function Home() {
 
   useEffect(() => {
     let active = true
+    let rotationInterval: number | undefined
 
     getUsers()
       .then((users) => {
         if (!active) return
         setTotalUsersCount(users.length)
         const availableUsers = users.filter((candidate) => candidate.id !== user?.id)
-        const shuffledUsers = [...availableUsers].sort(() => Math.random() - 0.5)
-        setSuggestedUsers(shuffledUsers.slice(0, 3))
+        if (availableUsers.length === 0) {
+          setSuggestedUsers([])
+          return
+        }
+
+        let shuffledUsers = shuffleUsers(availableUsers)
+        let offset = 0
+        const rotateSuggestions = () => {
+          const suggestionCount = Math.min(3, shuffledUsers.length)
+          setSuggestedUsers(
+            Array.from(
+              { length: suggestionCount },
+              (_, index) =>
+                shuffledUsers[(offset + index) % shuffledUsers.length],
+            ),
+          )
+          offset += suggestionCount
+
+          if (offset >= shuffledUsers.length) {
+            shuffledUsers = shuffleUsers(availableUsers)
+            offset = 0
+          }
+        }
+
+        rotateSuggestions()
+        const intervalId = window.setInterval(rotateSuggestions, 60_000)
+        rotationInterval = intervalId
       })
       .catch(() => {
         if (active) {
@@ -319,6 +361,9 @@ export default function Home() {
 
     return () => {
       active = false
+      if (rotationInterval !== undefined) {
+        window.clearInterval(rotationInterval)
+      }
     }
   }, [user?.id])
 

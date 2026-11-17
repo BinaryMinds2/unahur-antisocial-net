@@ -54,8 +54,9 @@ export function SpyAvatar({ className = 'w-5 h-5' }: { className?: string }) {
 export default function PostCard({ post, isDetail = false }: PostCardProps) {
   const { user: authenticatedUser } = useAuth()
   const user = post.User
+  const targetUserId = user?.id ?? post.UserId
   const targetNickName =
-    user?.nickName ?? `usuario_${post.UserId ?? 'anon'}`
+    user?.nickName ?? `usuario_${targetUserId ?? 'anon'}`
   const tags = post.Tags ?? []
   const images = post.PostImages ?? []
   const commentsCount = post.commentsCount ?? 0
@@ -136,9 +137,18 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
             <SpyAvatar className="h-6 w-6" />
           </div>
           <div className="flex min-w-0 items-center gap-2">
-            <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
-              @{user?.nickName ?? `usuario_${post.UserId ?? 'anon'}`}
-            </span>
+            {targetUserId ? (
+              <Link
+                to={`/profile/${targetUserId}`}
+                className="truncate font-mono font-bold text-matrix-text transition-colors hover:text-matrix-accent group-hover:text-matrix-accent"
+              >
+                @{targetNickName}
+              </Link>
+            ) : (
+              <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
+                @{targetNickName}
+              </span>
+            )}
             {!isOwnPost && (!authenticatedUser || !isFollowing) ? (
               <button
                 type="button"
