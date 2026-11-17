@@ -5,8 +5,7 @@ import { fileURLToPath } from 'node:url'
 import concurrently from 'concurrently'
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url))
-const backendFolder = resolve(projectRoot, 'backend')
-const backendDirectory = resolve(backendFolder, 'backend-api')
+const backendDirectory = resolve(projectRoot, 'backend', 'server')
 const seededMarker = resolve(backendDirectory, '.seeded')
 const forceSeed = process.argv.includes('--seed')
 
@@ -26,12 +25,8 @@ function run(command, cwd) {
 }
 
 try {
-  if (!existsSync(backendDirectory)) {
-    console.log('> Clonando el backend del profesor...')
-    await run(
-      'git clone https://github.com/lucasfigarola/backend-api backend-api',
-      backendFolder,
-    )
+  if (!existsSync(resolve(backendDirectory, 'package.json'))) {
+    throw new Error('No se encontró el backend en backend/server.')
   }
 
   if (!existsSync(resolve(backendDirectory, 'node_modules'))) {

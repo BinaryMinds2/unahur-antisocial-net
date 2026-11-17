@@ -29,6 +29,9 @@ dist-ssr
 
 TP2_Consigna.pdf
 
-# Ignorar todo lo que se descargue dentro de la carpeta backend
+# El clon local histórico no se versiona; la API desplegable vive en backend/server.
 backend/*
 !backend/.gitkeep
+!backend/server/
+backend/server/.seeded
+backend/server/database.sqlite

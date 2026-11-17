@@ -2,7 +2,7 @@
 
 Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite para la red anti-social, integrado con la API provista por la cátedra. Toda la interfaz fue diseñada con una estética inmersiva de terminal (Matrix/Cyberpunk).
 
-**API utilizada:** https://github.com/lucasfigarola/backend-api (corre en `http://localhost:3001`)
+**API:** backend Express incluido en `backend/server` (corre en `http://localhost:3001`).
 
 ---
 
@@ -83,12 +83,11 @@ npm ci
 npm run dev:all
 ```
 
-La primera vez, `npm run dev:all` se encarga de:
+`npm run dev:all` se encarga de:
 
-1. Clonar el backend de la cátedra dentro de `backend/backend-api`.
-2. Instalar sus dependencias.
-3. Cargar los datos de ejemplo (usuarios, posts, comentarios e imágenes) con el seed del proyecto (`seed/seed.js`).
-4. Levantar el backend y el frontend en paralelo.
+1. Instalar las dependencias del backend si todavía no están instaladas.
+2. Cargar los datos de ejemplo la primera vez (usuarios, posts, comentarios e imágenes) con `seed/seed.js`.
+3. Levantar el backend y el frontend en paralelo.
 
 Las siguientes veces **conserva la base de datos** (usuarios y posts que hayas creado). Para volver a los datos de ejemplo originales:
 
@@ -103,22 +102,11 @@ Para detener ambos servidores, presioná `Ctrl+C`.
 **1. Backend.** Desde la raíz del proyecto:
 
 ```bash
-cd backend
-git clone https://github.com/lucasfigarola/backend-api backend-api
-cp ../seed/seed.js backend-api/seed.js
-cd backend-api
+cd backend/server
 npm install
 node seed.js
 npm start
 ```
-
-En PowerShell, el paso de copiar el seed es:
-
-```powershell
-Copy-Item ..\seed\seed.js backend-api\seed.js -Force
-```
-
-Dejá esa terminal abierta. Si `backend/backend-api` ya existe, salteá el `git clone`.
 
 **2. Frontend.** En otra terminal, desde la raíz del proyecto:
 
@@ -127,7 +115,7 @@ npm ci
 npm run dev
 ```
 
-> ℹ️ El repo de la cátedra trae su propio `seed.js`. En el paso de copiar se lo reemplaza por el del proyecto, que tiene más datos e imágenes. Las imágenes locales están en `public/images/` y la base guarda sus rutas. Si preferís usar el seed original, salteá ese paso.
+> ℹ️ El seed incluido en `backend/server/seed.js` carga los datos de ejemplo del proyecto. Las imágenes están en `public/images/` y la base guarda sus rutas.
 
 > ⚠️ `node seed.js` **borra y vuelve a crear** la base de datos cada vez que se ejecuta.
 
@@ -137,6 +125,31 @@ npm run dev
 - App: `http://localhost:5173`
 
 La URL de la API se toma de `VITE_API_URL` (por defecto `http://localhost:3001`). Si el backend corre en otro lado, creá un archivo `.env.local` basado en `.env.example`.
+
+## 🚀 Deploy de demostración (Render + Vercel)
+
+El mismo repositorio se puede conectar a ambos servicios: Render publica la API desde `backend/server` y Vercel compila el frontend desde la raíz.
+
+### Render (API)
+
+Creá un Web Service conectado a este repositorio con:
+
+- **Root Directory:** `backend/server`
+- **Build Command:** `npm install`
+- **Start Command:** `node seed.js && npm start`
+
+El seed recrea la base SQLite de ejemplo antes de cada arranque. Esto es intencional para la demo: los registros creados durante una sesión se pierden al reiniciar o redeplegar el servicio. No se necesita `DATABASE_URL` ni otra variable de base de datos.
+
+### Vercel (frontend)
+
+Conectá el mismo repositorio como proyecto Vite con:
+
+- **Root Directory:** `.` (raíz del repositorio)
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Environment Variable:** `VITE_API_URL=https://<nombre-del-servicio>.onrender.com`
+
+Reemplazá el dominio por la URL pública de Render y redeplegá Vercel después de guardar la variable. `VITE_API_URL` se incorpora en la compilación del frontend.
 
 ---
 
