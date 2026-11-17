@@ -34,16 +34,22 @@ function getAxiosError(error: unknown): Error {
   if (typeof body === 'object' && body !== null) {
     const message = body as { error?: unknown; message?: unknown }
     if (typeof message.error === 'string') {
-      return new Error(message.error)
+      const apiError = new Error(message.error)
+      Object.assign(apiError, { status: error.response.status })
+      return apiError
     }
     if (typeof message.message === 'string') {
-      return new Error(message.message)
+      const apiError = new Error(message.message)
+      Object.assign(apiError, { status: error.response.status })
+      return apiError
     }
   }
 
-  return new Error(
+  const apiError = new Error(
     `La solicitud falló (${error.response.status} ${error.response.statusText})`,
   )
+  Object.assign(apiError, { status: error.response.status })
+  return apiError
 }
 
 async function requestApi<T>(
@@ -70,6 +76,9 @@ export const getPostById = (id: string | number): Promise<Post> =>
 
 export const getUsers = (): Promise<User[]> =>
   requestApi(() => apiClient.get<unknown>('/users'))
+
+export const getUserById = (id: number): Promise<User> =>
+  requestApi(() => apiClient.get<unknown>(`/users/${id}`))
 
 export const getTags = (): Promise<Tag[]> =>
   requestApi(() => apiClient.get<unknown>('/tags'))

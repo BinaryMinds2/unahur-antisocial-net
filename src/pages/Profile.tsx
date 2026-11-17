@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'motion/react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import DatabaseErrorTerminal from '../components/DatabaseErrorTerminal'
 import PostCard from '../components/PostCard'
 import TerminalIcon from '../components/TerminalIcon'
 import { useAuth } from '../context/useAuth'
+import ConfirmActionModal from '../components/ConfirmActionModal'
 import {
   getApiErrorMessage,
   getCommentsByPost,
@@ -27,6 +28,7 @@ const postsVariants: Variants = {
     transition: { staggerChildren: 0.12 },
   },
 }
+const POSTS_PAGE_SIZE = 6
 
 function getPostSortValue(post: Post): number {
   if (post.createdAt) {
@@ -37,13 +39,19 @@ function getPostSortValue(post: Post): number {
 }
 
 export default function Profile() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
+  const [postDetails, setPostDetails] = useState<Record<number, Post>>({})
+  const [visiblePostCount, setVisiblePostCount] = useState(POSTS_PAGE_SIZE)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [activeList, setActiveList] = useState<ProfileList | null>(null)
-  const [profileStats, setProfileStats] = useState<ProfileStats>(getProfileStats)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [profileStats, setProfileStats] = useState<ProfileStats>(() =>
+    getProfileStats(user?.id),
+  )
 
   useEffect(() => {
     if (!activeList) return
@@ -59,7 +67,7 @@ export default function Profile() {
   }, [activeList])
 
   useEffect(() => {
-    const syncProfileStats = () => setProfileStats(getProfileStats())
+    const syncProfileStats = () => setProfileStats(getProfileStats(user?.id))
 
     window.addEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
     window.addEventListener('storage', syncProfileStats)
@@ -67,7 +75,7 @@ export default function Profile() {
       window.removeEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
       window.removeEventListener('storage', syncProfileStats)
     }
-  }, [])
+  }, [user?.id])
 
   useEffect(() => {
     if (!user) return
@@ -77,30 +85,18 @@ export default function Profile() {
     const syncPosts = async () => {
       try {
         const loadedPosts = await getPostsByUser(user.id)
-        const postsWithDetails = await Promise.all(
-          loadedPosts.map(async (post) => {
-            const [images, comments] = await Promise.all([
-              getPostImages(post.id),
-              getCommentsByPost(post.id),
-            ])
-
-            return {
-              ...post,
-              PostImages: images,
-              commentsCount: comments.length,
-            }
-          }),
-        )
 
         if (!active) return
 
-        const sortedPosts = postsWithDetails.sort(
+        const sortedPosts = loadedPosts.sort(
           (first, second) =>
             getPostSortValue(second) - getPostSortValue(first),
         )
 
         setError(null)
         setPosts(sortedPosts)
+        setPostDetails({})
+        setVisiblePostCount(POSTS_PAGE_SIZE)
       } catch (requestError: unknown) {
         if (!active) return
         setError(
@@ -123,6 +119,56 @@ export default function Profile() {
     }
   }, [user, retryCount])
 
+  const visiblePosts = posts.slice(0, visiblePostCount)
+  const visiblePostIds = visiblePosts.map((post) => post.id).join(',')
+
+  useEffect(() => {
+    if (!visiblePostIds) return
+
+    let active = true
+    const postsToLoad = visiblePosts.filter((post) => !postDetails[post.id])
+
+    if (postsToLoad.length === 0) return
+
+    Promise.all(
+      postsToLoad.map(async (post) => {
+        const [images, comments] = await Promise.all([
+          getPostImages(post.id),
+          getCommentsByPost(post.id),
+        ])
+
+        return {
+          ...post,
+          PostImages: images,
+          commentsCount: comments.length,
+        }
+      }),
+    )
+      .then((loadedDetails) => {
+        if (!active) return
+        setPostDetails((currentDetails) => ({
+          ...currentDetails,
+          ...Object.fromEntries(
+            loadedDetails.map((post) => [post.id, post]),
+          ),
+        }))
+      })
+      .catch((requestError: unknown) => {
+        if (active) {
+          setError(
+            getApiErrorMessage(
+              requestError,
+              'No se pudieron cargar los detalles de las publicaciones.',
+            ),
+          )
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [postDetails, retryCount, visiblePostIds, visiblePosts])
+
   if (!user) {
     return null
   }
@@ -136,6 +182,16 @@ export default function Profile() {
 
   return (
     <>
+      <ConfirmActionModal
+        open={showLogoutModal}
+        title="¿Estás seguro que deseas salir?"
+        onConfirm={() => {
+          setShowLogoutModal(false)
+          logout()
+          navigate('/')
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
       {activeList && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -244,6 +300,13 @@ export default function Profile() {
             </div>
 
             <div className="p-5 sm:p-6">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="mb-4 rounded border border-matrix-border px-3 py-1.5 font-mono text-xs text-matrix-muted transition hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
+              >
+                [ /cerrar_sesión ]
+              </button>
               <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(300px,auto)] md:items-center">
                 <div className="flex min-w-0 items-center gap-4">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-matrix-accent bg-matrix-bg text-matrix-accent shadow-[0_0_18px_rgba(16,185,129,0.25)] sm:h-20 sm:w-20">
@@ -403,14 +466,27 @@ export default function Profile() {
               animate="visible"
               className="space-y-4"
             >
-              {posts.map((post) => (
+              {visiblePosts.map((post) => (
                 <PostCard
                   key={post.id}
-                  post={post}
+                  post={postDetails[post.id] ?? post}
                 />
               ))}
             </motion.div>
           )}
+          {!loading &&
+            !error &&
+            visiblePosts.length < posts.length && (
+              <button
+                type="button"
+                onClick={() =>
+                  setVisiblePostCount((count) => count + POSTS_PAGE_SIZE)
+                }
+                className="mx-auto block rounded border border-matrix-accent bg-matrix-accent/20 px-4 py-2 font-mono text-xs font-bold text-matrix-accent transition hover:bg-matrix-accent hover:text-black"
+              >
+                [ cargar_más ]
+              </button>
+            )}
         </div>
       </section>
     </>

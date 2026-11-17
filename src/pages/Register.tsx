@@ -1,18 +1,19 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import FormInput from '../components/FormInput'
 import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
 import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle'
 import { useAuth } from '../context/useAuth'
-import { getApiErrorMessage } from '../services/api'
+import { getApiErrorMessage, getUsers } from '../services/api'
+import { DEFAULT_PASSWORD } from '../constants'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Register() {
   const navigate = useNavigate()
-  const { register } = useAuth()
+  const { register, user } = useAuth()
 
   const [nickName, setNickName] = useState('')
   const [email, setEmail] = useState('')
@@ -51,6 +52,10 @@ export default function Register() {
   const nickNameError = getNickNameError()
   const emailError = getEmailError()
 
+  if (user) {
+    return <Navigate to="/" replace />
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmittedAttempt(true)
@@ -69,6 +74,17 @@ export default function Register() {
     setLoading(true)
 
     try {
+      const users = await getUsers()
+      const normalizedNickName = trimmedNickName.toLowerCase()
+      const nickNameAlreadyExists = users.some(
+        (user) => user.nickName.trim().toLowerCase() === normalizedNickName,
+      )
+
+      if (nickNameAlreadyExists) {
+        setError('Ese nombre de usuario ya existe.')
+        return
+      }
+
       await register({ nickName: trimmedNickName, email: trimmedEmail })
       setRegisteredUser(trimmedNickName)
     } catch (err: unknown) {
@@ -233,7 +249,7 @@ export default function Register() {
             label="clave_acceso"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            value="123456"
+            value={DEFAULT_PASSWORD}
             readOnly
             icon={<AuthFieldIcon type="lock" />}
             rightElement={

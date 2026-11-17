@@ -37,7 +37,7 @@ export default function CommentForm({ postId, onCreated }: CommentFormProps) {
 
     try {
       const newComment = await createComment({
-        content: trimmedContent, // O 'description', dependiendo de tu API
+        content: trimmedContent,
         userId: user.id,
         postId: postId,
       })

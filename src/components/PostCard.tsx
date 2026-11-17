@@ -61,7 +61,7 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
   const commentsCount = post.commentsCount ?? 0
   const [failedImageIds, setFailedImageIds] = useState<number[]>([])
   const [isFollowing, setIsFollowing] = useState(() =>
-    isFollowingUser(targetNickName),
+    isFollowingUser(targetNickName, authenticatedUser?.id),
   )
   const [followError, setFollowError] = useState('')
   const [showAuthRequired, setShowAuthRequired] = useState(false)
@@ -83,7 +83,9 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
   useEffect(() => {
     const syncFollowing = () => {
       setIsFollowing(
-        authenticatedUser ? isFollowingUser(targetNickName) : false,
+        authenticatedUser
+          ? isFollowingUser(targetNickName, authenticatedUser.id)
+          : false,
       )
     }
 
@@ -102,7 +104,7 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
     }
 
     try {
-      updateFollowing(targetNickName, shouldFollow)
+      updateFollowing(targetNickName, shouldFollow, authenticatedUser.id)
       setIsFollowing(shouldFollow)
       setFollowError('')
     } catch (error: unknown) {
@@ -225,7 +227,7 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
               to={`/post/${post.id}`}
               className="flex items-center gap-1 font-semibold text-matrix-accent transition-transform group-hover:translate-x-0.5 hover:underline"
             >
-              [ ver_detalle -&gt; ]
+              [ ver_más -&gt; ]
             </Link>
           )}
         </div>

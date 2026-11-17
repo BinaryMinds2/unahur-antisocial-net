@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import FormInput from '../components/FormInput'
 import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
 import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle'
 import { useAuth } from '../context/useAuth'
 import { getApiErrorMessage } from '../services/api'
+import { DEFAULT_PASSWORD } from '../constants'
 
 export default function Login() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, user } = useAuth()
 
   const [nickName, setNickName] = useState(() => {
     const state = location.state
@@ -21,7 +22,7 @@ export default function Login() {
       ? state.prefillUser
       : ''
   })
-  const [password, setPassword] = useState('123456')
+  const [password, setPassword] = useState(DEFAULT_PASSWORD)
   const [showPassword, setShowPassword] = useState(false)
   const [submittedAttempt, setSubmittedAttempt] = useState(false)
   const [error, setError] = useState('')
@@ -57,7 +58,18 @@ export default function Login() {
       if (!authenticated) {
         throw new Error('Usuario o contraseña incorrectos.')
       }
-      navigate('/')
+      const state = location.state
+      const destination =
+        typeof state === 'object' &&
+        state !== null &&
+        'from' in state &&
+        typeof state.from === 'object' &&
+        state.from !== null &&
+        'pathname' in state.from &&
+        typeof state.from.pathname === 'string'
+          ? state.from.pathname
+          : '/'
+      navigate(destination)
     } catch (err: unknown) {
       setError(
         getApiErrorMessage(
@@ -68,6 +80,10 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />
   }
 
   return (

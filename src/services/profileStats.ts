@@ -3,21 +3,27 @@ export interface ProfileStats {
   following: string[]
 }
 
-const PROFILE_STATS_KEY = 'unahur_profile_stats'
+const PROFILE_STATS_KEY = 'unahur_profile_stats_'
 export const PROFILE_STATS_UPDATED = 'unahur:profile-stats-updated'
 
 const defaultStats: ProfileStats = {
-  followers: ['@lucas', '@salir', '@maria'],
-  following: ['@sofia', '@nicolas', '@ana'],
+  followers: [],
+  following: [],
 }
 
 function normalizeNickName(nickName: string): string {
   return nickName.trim().replace(/^@+/, '').toLowerCase()
 }
 
-export function getProfileStats(): ProfileStats {
+function getProfileStatsKey(userId: number): string {
+  return `${PROFILE_STATS_KEY}${userId}`
+}
+
+export function getProfileStats(userId?: number): ProfileStats {
+  if (userId === undefined) return defaultStats
+
   try {
-    const storedStats = localStorage.getItem(PROFILE_STATS_KEY)
+    const storedStats = localStorage.getItem(getProfileStatsKey(userId))
     if (!storedStats) return defaultStats
 
     const parsed = JSON.parse(storedStats) as Partial<ProfileStats>
@@ -38,9 +44,9 @@ export function getProfileStats(): ProfileStats {
   }
 }
 
-export function isFollowingUser(nickName: string): boolean {
+export function isFollowingUser(nickName: string, userId?: number): boolean {
   const normalizedNickName = normalizeNickName(nickName)
-  return getProfileStats().following.some(
+  return getProfileStats(userId).following.some(
     (following) => normalizeNickName(following) === normalizedNickName,
   )
 }
@@ -48,13 +54,14 @@ export function isFollowingUser(nickName: string): boolean {
 export function updateFollowing(
   nickName: string,
   shouldFollow: boolean,
+  userId: number,
 ): ProfileStats {
   const normalizedNickName = normalizeNickName(nickName)
   if (!normalizedNickName) {
     throw new Error('No se pudo identificar al usuario para seguirlo.')
   }
 
-  const stats = getProfileStats()
+  const stats = getProfileStats(userId)
   const following = stats.following.filter(
     (entry) => normalizeNickName(entry) !== normalizedNickName,
   )
@@ -64,7 +71,7 @@ export function updateFollowing(
   }
 
   const updatedStats = { ...stats, following }
-  localStorage.setItem(PROFILE_STATS_KEY, JSON.stringify(updatedStats))
+  localStorage.setItem(getProfileStatsKey(userId), JSON.stringify(updatedStats))
   window.dispatchEvent(new Event(PROFILE_STATS_UPDATED))
   return updatedStats
 }

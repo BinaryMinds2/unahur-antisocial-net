@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { User, UserRegistrationData } from '../types'
-import { createUser, getUsers } from '../services/api'
+import { DEFAULT_PASSWORD } from '../constants'
+import { createUser, getUserById, getUsers } from '../services/api'
 import { AuthContext } from './AuthContextDefinition'
 
 const STORAGE_KEY = 'unahur_user'
@@ -53,12 +54,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         candidate.nickName.trim().toLowerCase() === normalizedNickName,
     )
 
-    if (!matchingUser || password !== '123456') {
+    if (!matchingUser || password !== DEFAULT_PASSWORD) {
       return false
     }
 
     setUser(matchingUser)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(matchingUser))
     return true
   }, [])
 
@@ -69,8 +69,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(() => {
     setUser(null)
-    localStorage.removeItem(STORAGE_KEY)
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+
+    let active = true
+
+    getUserById(user.id).catch((error: unknown) => {
+      if (
+        active &&
+        error instanceof Error &&
+        (error as Error & { status?: number }).status === 404
+      ) {
+        logout()
+      }
+    })
+
+    return () => {
+      active = false
+    }
+  }, [logout, user])
 
   const value = useMemo(
     () => ({ user, login, register, logout }),

@@ -150,6 +150,12 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 
 ---
 
+## ℹ️ Comportamientos simulados y límites
+
+- Los seguidores y seguidos son simulados y se guardan en `localStorage` por usuario.
+- En `CreatePost`, la descripción requiere entre 10 y 500 caracteres y se permiten hasta 4 imágenes.
+- El login es simulado y utiliza la contraseña fija **`123456`**.
+
 ## 🧰 Scripts
 
 | Comando | Descripción |

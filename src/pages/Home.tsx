@@ -8,6 +8,7 @@ import TerminalIcon from '../components/TerminalIcon'
 import { useAuth } from '../context/useAuth'
 import {
   getCommentsByPost,
+  getApiErrorMessage,
   getPostImages,
   getPosts,
   getUsers,
@@ -22,6 +23,7 @@ import {
 import type { Post, Tag, User } from '../types'
 
 const WELCOME_DISMISSED_KEY = 'unahur_welcome_dismissed'
+const POSTS_PAGE_SIZE = 6
 
 type FortuneCategory = 'SLOGAN' | 'DATO_CURIOSO' | 'DEV_LOG'
 type FortuneItem = { category: FortuneCategory; text: string }
@@ -80,14 +82,16 @@ const containerVariants: Variants = {
 function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
   const { user: authenticatedUser } = useAuth()
   const [following, setFollowing] = useState(() =>
-    isFollowingUser(suggestedUser.nickName),
+    isFollowingUser(suggestedUser.nickName, authenticatedUser?.id),
   )
   const [showAuthRequired, setShowAuthRequired] = useState(false)
 
   useEffect(() => {
     const syncFollowing = () =>
       setFollowing(
-        authenticatedUser ? isFollowingUser(suggestedUser.nickName) : false,
+        authenticatedUser
+          ? isFollowingUser(suggestedUser.nickName, authenticatedUser.id)
+          : false,
       )
 
     window.addEventListener(PROFILE_STATS_UPDATED, syncFollowing)
@@ -104,7 +108,7 @@ function SuggestedUserRow({ suggestedUser }: { suggestedUser: User }) {
       return
     }
 
-    updateFollowing(suggestedUser.nickName, !following)
+    updateFollowing(suggestedUser.nickName, !following, authenticatedUser.id)
     setFollowing(!following)
   }
 
@@ -265,6 +269,8 @@ export default function Home() {
     () => sessionStorage.getItem(WELCOME_DISMISSED_KEY) === 'true',
   )
   const [posts, setPosts] = useState<Post[]>([])
+  const [postDetails, setPostDetails] = useState<Record<number, Post>>({})
+  const [visiblePostCount, setVisiblePostCount] = useState(POSTS_PAGE_SIZE)
   const [tagQuery, setTagQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -274,17 +280,24 @@ export default function Home() {
   const [fortuneIndex, setFortuneIndex] = useState(() =>
     Math.floor(Math.random() * FORTUNE_ITEMS.length),
   )
-  const [profileStats, setProfileStats] = useState<ProfileStats>(getProfileStats)
+  const updateTagQuery = (query: string) => {
+    setTagQuery(query)
+    setVisiblePostCount(POSTS_PAGE_SIZE)
+  }
+  const [profileStats, setProfileStats] = useState<ProfileStats>(() =>
+    getProfileStats(user?.id),
+  )
 
   useEffect(() => {
-    const syncProfileStats = () => setProfileStats(getProfileStats())
+    const syncProfileStats = () =>
+      setProfileStats(getProfileStats(user?.id))
     window.addEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
     window.addEventListener('storage', syncProfileStats)
     return () => {
       window.removeEventListener(PROFILE_STATS_UPDATED, syncProfileStats)
       window.removeEventListener('storage', syncProfileStats)
     }
-  }, [])
+  }, [user?.id])
 
   useEffect(() => {
     let active = true
@@ -327,6 +340,8 @@ export default function Home() {
       ),
     )
   }, [mergedPosts, tagQuery])
+  const visiblePosts = filteredPosts.slice(0, visiblePostCount)
+  const visiblePostIds = visiblePosts.map((post) => post.id).join(',')
 
   const topTags = useMemo(() => getTagEntries(mergedPosts), [mergedPosts])
   const uniqueTagsCount = useMemo(
@@ -364,23 +379,11 @@ export default function Home() {
     let active = true
 
     getPosts()
-      .then(async (loadedPosts) => {
-        const postsWithDetails = await Promise.all(
-          loadedPosts.map(async (post) => {
-            const [images, comments] = await Promise.all([
-              getPostImages(post.id),
-              getCommentsByPost(post.id),
-            ])
-
-            return {
-              ...post,
-              PostImages: images,
-              commentsCount: comments.length,
-            }
-          }),
-        )
-
-        if (active) setPosts(postsWithDetails)
+      .then((loadedPosts) => {
+        if (active) {
+          setPosts(loadedPosts)
+          setPostDetails({})
+        }
       })
       .catch((requestError: unknown) => {
         if (active) {
@@ -399,6 +402,53 @@ export default function Home() {
       active = false
     }
   }, [retryCount])
+
+  useEffect(() => {
+    if (!visiblePostIds) return
+
+    let active = true
+    const postsToLoad = visiblePosts.filter((post) => !postDetails[post.id])
+
+    if (postsToLoad.length === 0) return
+
+    Promise.all(
+      postsToLoad.map(async (post) => {
+        const [images, comments] = await Promise.all([
+          getPostImages(post.id),
+          getCommentsByPost(post.id),
+        ])
+
+        return {
+          ...post,
+          PostImages: images,
+          commentsCount: comments.length,
+        }
+      }),
+    )
+      .then((loadedDetails) => {
+        if (!active) return
+        setPostDetails((currentDetails) => ({
+          ...currentDetails,
+          ...Object.fromEntries(
+            loadedDetails.map((post) => [post.id, post]),
+          ),
+        }))
+      })
+      .catch((requestError: unknown) => {
+        if (active) {
+          setError(
+            getApiErrorMessage(
+              requestError,
+              'No se pudieron cargar los detalles de las publicaciones.',
+            ),
+          )
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [postDetails, retryCount, visiblePostIds, visiblePosts])
 
   return (
     <section className="relative min-h-[calc(100vh-80px)] w-full overflow-x-clip bg-matrix-bg px-4 py-8">
@@ -494,7 +544,7 @@ export default function Home() {
                   {tagQuery && (
                     <button
                       type="button"
-                      onClick={() => setTagQuery('')}
+                      onClick={() => updateTagQuery('')}
                       className="text-[10px] text-matrix-muted transition hover:text-matrix-accent"
                     >
                       [ limpiar ]
@@ -511,7 +561,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() =>
-                            setTagQuery(isSelected ? '' : `#${tag.name}`)
+                            updateTagQuery(isSelected ? '' : `#${tag.name}`)
                           }
                           className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-colors ${
                             isSelected
@@ -673,7 +723,7 @@ export default function Home() {
                       key={tag.id}
                       type="button"
                       onClick={() =>
-                        setTagQuery(isSelected ? '' : `#${tag.name}`)
+                        updateTagQuery(isSelected ? '' : `#${tag.name}`)
                       }
                       className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] transition lg:hidden ${
                         isSelected
@@ -690,7 +740,7 @@ export default function Home() {
               {tagQuery && (
                 <button
                   type="button"
-                  onClick={() => setTagQuery('')}
+                  onClick={() => updateTagQuery('')}
                   className="ml-auto rounded border border-matrix-accent/50 bg-matrix-accent/10 px-2.5 py-0.5 font-mono text-xs text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
                 >
                   [ × limpiar_filtro ]
@@ -743,13 +793,26 @@ export default function Home() {
             animate="visible"
             className="space-y-4"
           >
-            {filteredPosts.map((post) => (
+            {visiblePosts.map((post) => (
               <PostCard
                 key={post.id}
-                post={post}
+                post={postDetails[post.id] ?? post}
               />
             ))}
           </motion.div>
+          {!loading &&
+            !error &&
+            visiblePosts.length < filteredPosts.length && (
+              <button
+                type="button"
+                onClick={() =>
+                  setVisiblePostCount((count) => count + POSTS_PAGE_SIZE)
+                }
+                className="mx-auto block rounded border border-matrix-accent bg-matrix-accent/20 px-4 py-2 font-mono text-xs font-bold text-matrix-accent transition hover:bg-matrix-accent hover:text-black"
+              >
+                [ cargar_más ]
+              </button>
+            )}
           <AboutUsCard
             postCount={mergedPosts.length}
             userCount={totalUsersCount}
