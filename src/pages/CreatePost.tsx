@@ -13,13 +13,76 @@ import type { Tag } from '../types'
 const MIN_DESCRIPTION_LENGTH = 10
 const MAX_DESCRIPTION_LENGTH = 500
 const MAX_IMAGES = 4
+const MAX_IMAGE_SIDE = 800
+const MAX_IMAGE_DATA_URL_LENGTH = 90_000
 
 function isValidHttpUrl(value: string): boolean {
+  if (value.startsWith('data:image/')) {
+    return true
+  }
+
   try {
     const parsed = new URL(value)
     return parsed.protocol === 'http:' || parsed.protocol === 'https:'
   } catch {
     return false
+  }
+}
+
+async function compressImageFile(file: File): Promise<string> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('El archivo seleccionado no es una imagen.')
+  }
+
+  const objectUrl = URL.createObjectURL(file)
+
+  try {
+    const image = new Image()
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () =>
+        reject(new Error('No se pudo abrir la imagen seleccionada.'))
+      image.src = objectUrl
+    })
+
+    const scale = Math.min(
+      1,
+      MAX_IMAGE_SIDE / Math.max(image.naturalWidth, image.naturalHeight),
+    )
+    let width = Math.max(1, Math.round(image.naturalWidth * scale))
+    let height = Math.max(1, Math.round(image.naturalHeight * scale))
+
+    while (true) {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d')
+      if (!context) {
+        throw new Error('No se pudo procesar la imagen seleccionada.')
+      }
+
+      context.drawImage(image, 0, 0, width, height)
+      for (const quality of [0.8, 0.6, 0.4]) {
+        const dataUrl = canvas.toDataURL('image/jpeg', quality)
+        if (dataUrl.length < MAX_IMAGE_DATA_URL_LENGTH) {
+          return dataUrl
+        }
+      }
+
+      const nextWidth = Math.max(1, Math.floor(width * 0.8))
+      const nextHeight = Math.max(1, Math.floor(height * 0.8))
+      if (nextWidth === width && nextHeight === height) {
+        break
+      }
+      width = nextWidth
+      height = nextHeight
+    }
+
+    throw new Error(
+      'No se pudo reducir la imagen por debajo del límite permitido.',
+    )
+  } finally {
+    URL.revokeObjectURL(objectUrl)
   }
 }
 
@@ -30,6 +93,11 @@ export default function CreatePost() {
   const [availableTags, setAvailableTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const [imageUrls, setImageUrls] = useState([''])
+  const [imageFileNames, setImageFileNames] = useState([''])
+  const [imageFileErrors, setImageFileErrors] = useState<string[]>([''])
+  const [processingImageRows, setProcessingImageRows] = useState<
+    Record<number, boolean>
+  >({})
   const [brokenImages, setBrokenImages] = useState<Record<number, boolean>>({})
   const [tagsLoading, setTagsLoading] = useState(true)
   const [tagsError, setTagsError] = useState('')
@@ -93,6 +161,11 @@ export default function CreatePost() {
 
     imageUrls.forEach((rawUrl, index) => {
       const url = rawUrl.trim()
+      if (imageFileErrors[index]) {
+        errors[index] = imageFileErrors[index]
+        return
+      }
+
       if (!url) {
         if (submittedAttempt && imageUrls.length > 1) {
           errors[index] = 'Completá esta URL o quitá el campo vacío.'
@@ -101,7 +174,8 @@ export default function CreatePost() {
       }
 
       if (!isValidHttpUrl(url)) {
-        errors[index] = 'Ingresá una URL válida que empiece con http:// o https://.'
+        errors[index] =
+          'Ingresá una URL válida que empiece con http:// o https://, o elegí una imagen.'
         return
       }
 
@@ -121,7 +195,13 @@ export default function CreatePost() {
   const showDescriptionError =
     Boolean(descriptionError) && (contentTouched || submittedAttempt)
   const hasImageErrors = Object.keys(imageRowErrors).length > 0
-  const isFormReady = !descriptionError && !hasImageErrors && !tagsLoading && !tagsError
+  const isProcessingImages = Object.keys(processingImageRows).length > 0
+  const isFormReady =
+    !descriptionError &&
+    !hasImageErrors &&
+    !isProcessingImages &&
+    !tagsLoading &&
+    !tagsError
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -135,6 +215,11 @@ export default function CreatePost() {
 
     if (tagsLoading || tagsError) {
       setError('Esperá a que se carguen las etiquetas antes de publicar.')
+      return
+    }
+
+    if (isProcessingImages) {
+      setError('Esperá a que termine el procesamiento de las imágenes.')
       return
     }
 
@@ -196,6 +281,16 @@ export default function CreatePost() {
         currentIndex === index ? value : url,
       ),
     )
+    setImageFileNames((currentNames) =>
+      currentNames.map((name, currentIndex) =>
+        currentIndex === index ? '' : name,
+      ),
+    )
+    setImageFileErrors((currentErrors) =>
+      currentErrors.map((rowError, currentIndex) =>
+        currentIndex === index ? '' : rowError,
+      ),
+    )
     setBrokenImages((current) => {
       if (!current[index]) return current
       const next = { ...current }
@@ -207,6 +302,12 @@ export default function CreatePost() {
   const removeImageRow = (index: number) => {
     setImageUrls((currentUrls) =>
       currentUrls.filter((_, currentIndex) => currentIndex !== index),
+    )
+    setImageFileNames((currentNames) =>
+      currentNames.filter((_, currentIndex) => currentIndex !== index),
+    )
+    setImageFileErrors((currentErrors) =>
+      currentErrors.filter((_, currentIndex) => currentIndex !== index),
     )
     setBrokenImages({})
   }
@@ -223,7 +324,74 @@ export default function CreatePost() {
       ]
       return reorderedUrls
     })
+    setImageFileNames((currentNames) => {
+      const targetIndex = index + direction
+      if (targetIndex < 0 || targetIndex >= currentNames.length) return currentNames
+
+      const reorderedNames = [...currentNames]
+      ;[reorderedNames[index], reorderedNames[targetIndex]] = [
+        reorderedNames[targetIndex],
+        reorderedNames[index],
+      ]
+      return reorderedNames
+    })
+    setImageFileErrors((currentErrors) => {
+      const targetIndex = index + direction
+      if (targetIndex < 0 || targetIndex >= currentErrors.length) return currentErrors
+
+      const reorderedErrors = [...currentErrors]
+      ;[reorderedErrors[index], reorderedErrors[targetIndex]] = [
+        reorderedErrors[targetIndex],
+        reorderedErrors[index],
+      ]
+      return reorderedErrors
+    })
     setBrokenImages({})
+  }
+
+  const selectImageFile = async (index: number, file: File) => {
+    setProcessingImageRows((current) => ({ ...current, [index]: true }))
+    setImageFileErrors((currentErrors) =>
+      currentErrors.map((rowError, currentIndex) =>
+        currentIndex === index ? '' : rowError,
+      ),
+    )
+
+    try {
+      const dataUrl = await compressImageFile(file)
+      setImageUrls((currentUrls) =>
+        currentUrls.map((url, currentIndex) =>
+          currentIndex === index ? dataUrl : url,
+        ),
+      )
+      setImageFileNames((currentNames) =>
+        currentNames.map((name, currentIndex) =>
+          currentIndex === index ? file.name : name,
+        ),
+      )
+      setBrokenImages((current) => {
+        if (!current[index]) return current
+        const next = { ...current }
+        delete next[index]
+        return next
+      })
+    } catch (fileError: unknown) {
+      setImageFileErrors((currentErrors) =>
+        currentErrors.map((rowError, currentIndex) =>
+          currentIndex === index
+            ? fileError instanceof Error
+              ? fileError.message
+              : 'No se pudo procesar la imagen seleccionada.'
+            : rowError,
+        ),
+      )
+    } finally {
+      setProcessingImageRows((current) => {
+        const next = { ...current }
+        delete next[index]
+        return next
+      })
+    }
   }
 
   const toggleTag = (tagId: number) => {
@@ -462,7 +630,7 @@ export default function CreatePost() {
               <fieldset
                 aria-labelledby="images-label"
                 className="space-y-3 rounded-lg border border-matrix-border/70 bg-black/30 p-3.5"
-                disabled={publicationCreated || submitting}
+                disabled={publicationCreated || submitting || isProcessingImages}
               >
                 {imageUrls.map((url, index) => {
                   const trimmedUrl = url.trim()
@@ -483,8 +651,8 @@ export default function CreatePost() {
                         </span>
                         <input
                           id={`imageUrl-${index}`}
-                          type="url"
-                          value={url}
+                          type="text"
+                          value={imageFileNames[index] || url}
                           onChange={(event) =>
                             updateImageUrl(index, event.target.value)
                           }
@@ -497,6 +665,29 @@ export default function CreatePost() {
                               : 'border-matrix-border focus:border-matrix-accent focus:ring-1 focus:ring-matrix-accent'
                           }`}
                         />
+                        <input
+                          id={`imageFile-${index}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0]
+                            event.target.value = ''
+                            if (file) {
+                              void selectImageFile(index, file)
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            document.getElementById(`imageFile-${index}`)?.click()
+                          }
+                          className="shrink-0 rounded border border-matrix-border px-2 py-2 font-mono text-xs text-matrix-accent transition-colors hover:border-matrix-accent"
+                          aria-label={`Elegir archivo de imagen ${index + 1}`}
+                        >
+                          [ elegir_archivo ]
+                        </button>
                         {imageUrls.length > 1 && (
                           <div className="flex shrink-0 items-center gap-1">
                             <button
@@ -571,9 +762,11 @@ export default function CreatePost() {
                 {imageUrls.length < MAX_IMAGES && (
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
                       setImageUrls((currentUrls) => [...currentUrls, ''])
-                    }
+                      setImageFileNames((currentNames) => [...currentNames, ''])
+                      setImageFileErrors((currentErrors) => [...currentErrors, ''])
+                    }}
                     className="rounded border border-matrix-border px-3 py-1.5 font-mono text-xs text-matrix-accent hover:border-matrix-accent"
                   >
                     [ + agregar imagen ]
