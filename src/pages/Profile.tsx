@@ -456,31 +456,25 @@ export default function Profile() {
             </div>
 
             <div className="p-5 sm:p-6">
-              {isOwnProfile ? (
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutModal(true)}
-                  className="mb-4 rounded border border-matrix-border px-3 py-1.5 font-mono text-xs text-matrix-muted transition hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
-                >
-                  [ /cerrar_sesión ]
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleProfileFollow}
-                  className={`mb-4 rounded border px-3 py-1.5 font-mono text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent ${
-                    isFollowingProfile
-                      ? 'border-orange-400/70 bg-orange-500/10 text-orange-300 hover:border-orange-300'
-                      : 'border-matrix-accent/60 bg-matrix-accent/10 text-matrix-accent hover:border-matrix-accent'
-                  }`}
-                >
-                  {isFollowingProfile ? '[ dejar de seguir ]' : '[ +seguir ]'}
-                </button>
-              )}
-              {followError && (
-                <p role="alert" className="mb-3 font-mono text-xs text-red-400">
-                  ! {followError}
-                </p>
+              {!isOwnProfile && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleProfileFollow}
+                    className={`mb-4 rounded border px-3 py-1.5 font-mono text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent ${
+                      isFollowingProfile
+                        ? 'border-orange-400/70 bg-orange-500/10 text-orange-300 hover:border-orange-300'
+                        : 'border-matrix-accent/60 bg-matrix-accent/10 text-matrix-accent hover:border-matrix-accent'
+                    }`}
+                  >
+                    {isFollowingProfile ? '[ dejar de seguir ]' : '[ +seguir ]'}
+                  </button>
+                  {followError && (
+                    <p role="alert" className="mb-3 font-mono text-xs text-red-400">
+                      ! {followError}
+                    </p>
+                  )}
+                </>
               )}
               <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(300px,auto)] md:items-center">
                 <div className="flex min-w-0 items-center gap-4">
