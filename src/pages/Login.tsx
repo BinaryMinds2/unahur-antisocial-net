@@ -12,9 +12,19 @@ export default function Login() {
   const location = useLocation()
   const navigate = useNavigate()
   const { login, user } = useAuth()
+  const state = location.state
+  const destination =
+    typeof state === 'object' &&
+    state !== null &&
+    'from' in state &&
+    typeof state.from === 'object' &&
+    state.from !== null &&
+    'pathname' in state.from &&
+    typeof state.from.pathname === 'string'
+      ? state.from.pathname
+      : '/'
 
   const [nickName, setNickName] = useState(() => {
-    const state = location.state
     return typeof state === 'object' &&
       state !== null &&
       'prefillUser' in state &&
@@ -58,17 +68,6 @@ export default function Login() {
       if (!authenticated) {
         throw new Error('Usuario o contraseña incorrectos.')
       }
-      const state = location.state
-      const destination =
-        typeof state === 'object' &&
-        state !== null &&
-        'from' in state &&
-        typeof state.from === 'object' &&
-        state.from !== null &&
-        'pathname' in state.from &&
-        typeof state.from.pathname === 'string'
-          ? state.from.pathname
-          : '/'
       navigate(destination)
     } catch (err: unknown) {
       setError(
@@ -83,7 +82,7 @@ export default function Login() {
   }
 
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to={destination} replace />
   }
 
   return (

@@ -6,7 +6,7 @@ import AuthTerminalLayout from '../components/AuthTerminalLayout'
 import AuthFieldIcon from '../components/AuthFieldIcon'
 import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle'
 import { useAuth } from '../context/useAuth'
-import { getApiErrorMessage, getUsers } from '../services/api'
+import { getApiErrorMessage } from '../services/api'
 import { DEFAULT_PASSWORD } from '../constants'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -74,17 +74,6 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const users = await getUsers()
-      const normalizedNickName = trimmedNickName.toLowerCase()
-      const nickNameAlreadyExists = users.some(
-        (user) => user.nickName.trim().toLowerCase() === normalizedNickName,
-      )
-
-      if (nickNameAlreadyExists) {
-        setError('Ese nombre de usuario ya existe.')
-        return
-      }
-
       await register({ nickName: trimmedNickName, email: trimmedEmail })
       setRegisteredUser(trimmedNickName)
     } catch (err: unknown) {

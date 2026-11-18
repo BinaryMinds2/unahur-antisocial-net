@@ -2,6 +2,11 @@
 
 Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite para la red anti-social, integrado con la API provista por la cátedra. Toda la interfaz fue diseñada con una estética inmersiva de terminal (Matrix/Cyberpunk).
 
+## 🌐 Demo en línea
+
+- Frontend (Vercel): https://antisocial-unahur.vercel.app/
+- Usuarios de prueba: `luna` y `sol`, contraseña `123456`.
+
 **API:** `backend/server` es una copia sin modificar del backend de la cátedra (https://github.com/lucasfigarola/backend-api), que corre en `http://localhost:3001`. Lo único propio es `seed/seed.js` (datos de ejemplo).
 
 ---
@@ -139,7 +144,10 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 ## ℹ️ Comportamientos simulados y límites
 
 - Los seguidores y seguidos son simulados y se guardan en `localStorage` por usuario.
-- En `CreatePost`, la descripción requiere entre 10 y 500 caracteres y se permiten hasta 4 imágenes.
+- **Registro:** el `nickName` requiere al menos 3 caracteres y no puede contener espacios; el email debe tener formato válido. El backend valida que el `nickName` sea único y el frontend muestra el mensaje de error que devuelve.
+- **Crear publicación:** la descripción es obligatoria y debe tener entre 10 y 500 caracteres; se permiten hasta 4 imágenes, ingresadas como URL `http(s)` o seleccionando un archivo, que se comprime en el navegador y se guarda como data URL. No se permiten URLs repetidas.
+- **Comentarios:** el campo es obligatorio y se requiere una sesión iniciada para comentar.
+- **Rutas protegidas:** `/profile`, `/profile/:userId` y `/create-post` solo son accesibles con sesión iniciada. Sin sesión, se redirige a `/login` y, tras iniciar sesión, se vuelve a la ruta original.
 - El login es simulado y utiliza la contraseña fija **`123456`**.
 
 ## 🧰 Scripts
@@ -152,30 +160,3 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 | `npm run build` | Compilación de producción |
 | `npm run lint` | Chequeo de código |
 | `npm run preview` | Vista previa de la compilación |
-
----
-
-## 🚀 Deploy de demostración — Extra opcional, no requerido por la consigna
-
-El mismo repositorio se puede conectar a ambos servicios: Render publica la API desde `backend/server` y Vercel compila el frontend desde la raíz.
-
-### Render (API)
-
-Creá un Web Service conectado a este repositorio con:
-
-- **Root Directory:** `backend/server`
-- **Build Command:** `npm install`
-- **Start Command:** `node seed.js && npm start`
-
-El seed recrea la base SQLite de ejemplo antes de cada arranque. Esto es intencional para la demo: los registros creados durante una sesión se pierden al reiniciar o redeplegar el servicio. No se necesita `DATABASE_URL` ni otra variable de base de datos.
-
-### Vercel (frontend)
-
-Conectá el mismo repositorio como proyecto Vite con:
-
-- **Root Directory:** `.` (raíz del repositorio)
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Environment Variable:** `VITE_API_URL=https://<nombre-del-servicio>.onrender.com`
-
-Reemplazá el dominio por la URL pública de Render y redeplegá Vercel después de guardar la variable. `VITE_API_URL` se incorpora en la compilación del frontend.
