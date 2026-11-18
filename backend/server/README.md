@@ -61,7 +61,6 @@ http://localhost:3001
 - `GET /posts`: lista todas las publicaciones
 - `GET /posts/:id`: detalle de una publicación
 - `POST /posts`: crear nueva publicación
-- `DELETE /posts/:id?userId=<id>`: elimina una publicación del usuario indicado
   **Body JSON requerido:**
   ```json
   {

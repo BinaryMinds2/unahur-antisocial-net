@@ -2,7 +2,7 @@
 
 Este repositorio contiene el frontend desarrollado en React + TypeScript + Vite para la red anti-social, integrado con la API provista por la cátedra. Toda la interfaz fue diseñada con una estética inmersiva de terminal (Matrix/Cyberpunk).
 
-**API:** backend Express incluido en `backend/server` (corre en `http://localhost:3001`).
+**API:** `backend/server` es una copia sin modificar del backend de la cátedra (https://github.com/lucasfigarola/backend-api), que corre en `http://localhost:3001`. Lo único propio es `seed/seed.js` (datos de ejemplo).
 
 ---
 
@@ -126,33 +126,6 @@ npm run dev
 
 La URL de la API se toma de `VITE_API_URL` (por defecto `http://localhost:3001`). Si el backend corre en otro lado, creá un archivo `.env.local` basado en `.env.example`.
 
-## 🚀 Deploy de demostración (Render + Vercel)
-
-El mismo repositorio se puede conectar a ambos servicios: Render publica la API desde `backend/server` y Vercel compila el frontend desde la raíz.
-
-### Render (API)
-
-Creá un Web Service conectado a este repositorio con:
-
-- **Root Directory:** `backend/server`
-- **Build Command:** `npm install`
-- **Start Command:** `node seed.js && npm start`
-
-El seed recrea la base SQLite de ejemplo antes de cada arranque. Esto es intencional para la demo: los registros creados durante una sesión se pierden al reiniciar o redeplegar el servicio. No se necesita `DATABASE_URL` ni otra variable de base de datos.
-
-### Vercel (frontend)
-
-Conectá el mismo repositorio como proyecto Vite con:
-
-- **Root Directory:** `.` (raíz del repositorio)
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Environment Variable:** `VITE_API_URL=https://<nombre-del-servicio>.onrender.com`
-
-Reemplazá el dominio por la URL pública de Render y redeplegá Vercel después de guardar la variable. `VITE_API_URL` se incorpora en la compilación del frontend.
-
----
-
 ## 🔑 Login simulado
 
 No hay autenticación real. Se inicia sesión con el `nickName` de un usuario existente y la contraseña fija **`123456`**.
@@ -179,3 +152,30 @@ También se puede crear un usuario nuevo desde la pantalla de registro (requiere
 | `npm run build` | Compilación de producción |
 | `npm run lint` | Chequeo de código |
 | `npm run preview` | Vista previa de la compilación |
+
+---
+
+## 🚀 Deploy de demostración — Extra opcional, no requerido por la consigna
+
+El mismo repositorio se puede conectar a ambos servicios: Render publica la API desde `backend/server` y Vercel compila el frontend desde la raíz.
+
+### Render (API)
+
+Creá un Web Service conectado a este repositorio con:
+
+- **Root Directory:** `backend/server`
+- **Build Command:** `npm install`
+- **Start Command:** `node seed.js && npm start`
+
+El seed recrea la base SQLite de ejemplo antes de cada arranque. Esto es intencional para la demo: los registros creados durante una sesión se pierden al reiniciar o redeplegar el servicio. No se necesita `DATABASE_URL` ni otra variable de base de datos.
+
+### Vercel (frontend)
+
+Conectá el mismo repositorio como proyecto Vite con:
+
+- **Root Directory:** `.` (raíz del repositorio)
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Environment Variable:** `VITE_API_URL=https://<nombre-del-servicio>.onrender.com`
+
+Reemplazá el dominio por la URL pública de Render y redeplegá Vercel después de guardar la variable. `VITE_API_URL` se incorpora en la compilación del frontend.

@@ -97,9 +97,6 @@ function NavigationItems({
 
   return (
     <>
-      <NavLink to="/" end className={linkClass} onClick={closeMenu}>
-        {mobile && '> '}[ /inicio ]
-      </NavLink>
       {user ? (
         <>
           <NavLink to="/create-post" className={linkClass} onClick={closeMenu}>

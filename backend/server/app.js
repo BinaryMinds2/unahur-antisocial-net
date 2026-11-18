@@ -15,7 +15,6 @@ app.use(express.json());
 
 app.use('/users', userRoutes);
 app.use('/posts', postRoutes);
-app.use('/posts', require('./routes/delete-posts'));
 app.use('/comments', commentRoutes);
 app.use('/tags', tagRoutes);
 app.use('/postimages', postImageRoutes);
