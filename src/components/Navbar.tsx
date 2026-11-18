@@ -100,7 +100,7 @@ function NavigationItems({
       {user ? (
         <>
           <NavLink to="/create-post" className={linkClass} onClick={closeMenu}>
-            {mobile && '> '}[ +publicar ]
+            {mobile && '> '}[ + publicar ]
           </NavLink>
           <NavLink to="/profile" className={linkClass} onClick={closeMenu}>
             {mobile && '> '}[ @{user.nickName} ]

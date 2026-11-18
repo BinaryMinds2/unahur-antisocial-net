@@ -546,15 +546,8 @@ export default function Home() {
                       </span>
                     </div>
                   </div>
-
-                  <Link
-                    to="/create-post"
-                    className="block rounded-lg border border-matrix-accent/70 bg-matrix-accent/15 px-3 py-2 text-center font-mono text-xs font-bold text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.15)] transition hover:border-matrix-accent hover:bg-matrix-accent hover:text-black"
-                  >
-                    [ +publicar ]
-                  </Link>
-                </>
-              ) : (
+                  </>
+                ) : (
                 <>
                   <span className="block font-mono text-xs text-matrix-muted">
                     [ MODO_INVITADO ]
@@ -668,7 +661,7 @@ export default function Home() {
                     className="rounded border border-matrix-border px-2 py-0.5 font-mono text-xs text-matrix-muted transition-colors hover:border-matrix-accent hover:text-matrix-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
                     aria-label="Cerrar bienvenida"
                   >
-                    [ × ]
+                    [×]
                   </button>
                 </div>
 
@@ -701,7 +694,7 @@ export default function Home() {
                 to="/create-post"
                 className="w-fit shrink-0 rounded border border-matrix-accent bg-matrix-accent/20 px-4 py-2 text-xs font-bold text-matrix-accent transition-colors hover:bg-matrix-accent hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent"
               >
-                [ + nueva_publicacion ]
+                [ + publicar ]
               </Link>
             </motion.div>
           )}
