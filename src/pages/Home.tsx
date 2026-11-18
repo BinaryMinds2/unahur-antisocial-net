@@ -709,9 +709,25 @@ export default function Home() {
               <span className="font-mono text-xs text-matrix-muted">
                 bash -- system_feed.sh
               </span>
-              <div className="flex items-center gap-1.5 rounded border border-matrix-accent/30 bg-matrix-accent/10 px-2.5 py-0.5 font-mono text-[11px] text-matrix-accent">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-matrix-accent" />
-                <span>ONLINE</span>
+              <div
+                className={`flex items-center gap-1.5 rounded border px-2.5 py-0.5 font-mono text-[11px] ${
+                  error
+                    ? 'border-red-500/40 bg-red-500/10 text-red-400'
+                    : loading
+                      ? 'border-amber-400/40 bg-amber-400/10 text-amber-300'
+                      : 'border-matrix-accent/30 bg-matrix-accent/10 text-matrix-accent'
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    error
+                      ? 'animate-pulse bg-red-400'
+                      : loading
+                        ? 'animate-pulse bg-amber-300'
+                        : 'animate-pulse bg-matrix-accent'
+                  }`}
+                />
+                <span>{error ? 'OFFLINE' : loading ? 'CONNECTING' : 'ONLINE'}</span>
               </div>
             </div>
 
@@ -793,11 +809,54 @@ export default function Home() {
               aria-label="Cargando publicaciones"
               aria-busy="true"
             >
-              {[1, 2, 3].map((skeleton) => (
+              <div className="space-y-4 rounded-xl border border-matrix-accent/40 bg-matrix-card/90 p-5 font-mono shadow-[0_0_25px_rgba(16,185,129,0.08)]">
+                <div className="flex items-center gap-2 text-sm font-bold text-matrix-accent">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-matrix-accent opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-matrix-accent" />
+                  </span>
+                  <span>&gt; ESTABLECIENDO_CONEXIÓN_CON_API...</span>
+                </div>
+                <p className="text-xs leading-relaxed text-matrix-muted">
+                  El servidor puede tardar unos segundos en despertar durante la
+                  primera carga.
+                </p>
+                <div className="h-1.5 overflow-hidden rounded-full bg-matrix-border/70">
+                  <motion.div
+                    className="h-full w-1/3 rounded-full bg-matrix-accent"
+                    animate={{ x: ['-100%', '300%'] }}
+                    transition={{
+                      duration: 1.5,
+                      ease: 'linear',
+                      repeat: Infinity,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {[1, 2].map((skeleton) => (
                 <div
                   key={skeleton}
-                  className="h-52 animate-pulse rounded-xl border border-matrix-border/50 bg-matrix-card/40"
-                />
+                  className="space-y-4 rounded-xl border border-matrix-border bg-matrix-card/80 p-5"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 animate-pulse rounded-full bg-matrix-border" />
+                    <div className="h-4 w-32 animate-pulse rounded bg-matrix-border" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 w-full animate-pulse rounded bg-matrix-border/70" />
+                    <div className="h-3 w-5/6 animate-pulse rounded bg-matrix-border/70" />
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-matrix-border/70" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 animate-pulse rounded bg-matrix-border" />
+                    <div className="h-5 w-20 animate-pulse rounded bg-matrix-border" />
+                  </div>
+                  <div className="flex justify-between border-t border-matrix-border/60 pt-3">
+                    <div className="h-3 w-24 animate-pulse rounded bg-matrix-border/70" />
+                    <div className="h-3 w-16 animate-pulse rounded bg-matrix-border/70" />
+                  </div>
+                </div>
               ))}
             </div>
           )}
