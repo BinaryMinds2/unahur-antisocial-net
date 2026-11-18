@@ -266,10 +266,61 @@ export default function Profile() {
 
     return (
       <section
-        className="mx-auto max-w-3xl px-4 py-12 font-mono text-sm text-matrix-muted"
+        className="mx-auto max-w-3xl px-4 py-12"
         aria-live="polite"
       >
-        // [ cargando_perfil... ]
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative overflow-hidden rounded-xl border border-dashed border-matrix-accent/40 bg-matrix-card/80 p-8 text-center shadow-[0_0_30px_rgba(16,185,129,0.08)] backdrop-blur-md sm:p-10"
+        >
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-matrix-accent/10 blur-[80px]" />
+
+          <div className="relative z-10 flex flex-col items-center space-y-4 font-mono">
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+              className="rounded-xl border border-matrix-accent/40 bg-matrix-bg/90 p-4 text-matrix-accent shadow-[0_0_25px_rgba(16,185,129,0.2)]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-12 w-12 text-matrix-accent drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                aria-hidden="true"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
+                <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
+                <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
+                <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
+                <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
+                <path d="M12 9v6" />
+                <path d="M15 12l-3 3l-3 -3" />
+              </svg>
+            </motion.div>
+
+            <div className="flex items-center gap-1 text-xs text-matrix-accent">
+              <span>&gt; LOADING_PROFILE_DATA</span>
+              <span className="animate-pulse font-bold">_</span>
+            </div>
+
+            <p className="max-w-md text-sm leading-relaxed text-matrix-text sm:text-base">
+              Sincronizando datos del perfil...
+            </p>
+
+            <p className="max-w-md text-sm leading-relaxed text-matrix-muted">
+              Aguardá un instante mientras cargamos la información.
+            </p>
+          </div>
+        </motion.div>
       </section>
     )
   }

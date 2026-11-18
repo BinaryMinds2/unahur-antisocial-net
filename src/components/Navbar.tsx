@@ -97,6 +97,9 @@ function NavigationItems({
 
   return (
     <>
+      <NavLink to="/" end className={linkClass} onClick={closeMenu}>
+        {mobile && '> '}[ /inicio ]
+      </NavLink>
       {user ? (
         <>
           <NavLink to="/create-post" className={linkClass} onClick={closeMenu}>
@@ -175,7 +178,7 @@ export default function Navbar() {
 
           <button
             type="button"
-            className={`rounded border p-2 font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg md:hidden ${
+            className={`rounded border p-2 font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-matrix-accent focus-visible:ring-offset-2 focus-visible:ring-offset-matrix-bg min-[920px]:hidden ${
               isOpen
                 ? 'border-matrix-accent text-matrix-accent shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                 : 'border-matrix-border text-matrix-muted hover:border-matrix-accent-hover hover:text-matrix-accent-hover hover:shadow-[0_0_10px_rgba(0,204,82,0.35)]'
@@ -195,7 +198,7 @@ export default function Navbar() {
             )}
           </button>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 min-[920px]:flex">
             <NavigationItems
               mobile={false}
               user={user}
@@ -210,7 +213,7 @@ export default function Navbar() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute left-0 right-0 top-full z-50 mx-4 mt-2 rounded-xl border border-matrix-border/80 bg-matrix-card/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl md:hidden"
+                className="absolute left-0 right-0 top-full z-50 mx-4 mt-2 rounded-xl border border-matrix-border/80 bg-matrix-card/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl min-[922px]:hidden"
               >
                 <div className="flex flex-col gap-2">
                   <NavigationItems
