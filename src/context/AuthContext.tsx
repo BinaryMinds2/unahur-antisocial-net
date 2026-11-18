@@ -37,6 +37,7 @@ function readStoredUser(): User | null {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(readStoredUser)
+  const [welcomeUser, setWelcomeUser] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -45,6 +46,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.removeItem(STORAGE_KEY)
     }
   }, [user])
+
+  const dismissWelcomeToast = useCallback(() => {
+    setWelcomeUser(null)
+  }, [])
+
+  useEffect(() => {
+    if (!welcomeUser) return
+
+    const timer = window.setTimeout(() => {
+      setWelcomeUser(null)
+    }, 3500)
+
+    return () => window.clearTimeout(timer)
+  }, [welcomeUser])
 
   const login = useCallback(async (nickName: string, password: string) => {
     const normalizedNickName = nickName.trim().toLowerCase()
@@ -59,6 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setUser(matchingUser)
+    setWelcomeUser(matchingUser.nickName)
     return true
   }, [])
 
@@ -69,6 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(() => {
     setUser(null)
+    setWelcomeUser(null)
   }, [])
 
   useEffect(() => {
@@ -92,8 +109,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [logout, user])
 
   const value = useMemo(
-    () => ({ user, login, register, logout }),
-    [user, login, register, logout],
+    () => ({
+      user,
+      welcomeUser,
+      login,
+      register,
+      logout,
+      dismissWelcomeToast,
+    }),
+    [user, welcomeUser, login, register, logout, dismissWelcomeToast],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

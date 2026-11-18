@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import NotFound from './pages/NotFound'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
+import WelcomeToast from './components/WelcomeToast'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
@@ -15,6 +16,7 @@ function App() {
     <BrowserRouter>
       <div className="flex min-h-screen flex-col bg-matrix-bg">
         <Navbar />
+        <WelcomeToast />
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
