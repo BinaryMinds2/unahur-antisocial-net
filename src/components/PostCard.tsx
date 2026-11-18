@@ -78,8 +78,10 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
     visibleImages.length === 1
       ? 'grid-cols-1'
       : visibleImages.length === 2
-        ? 'grid-cols-2'
-        : 'grid-cols-2 sm:grid-cols-3'
+        ? 'grid-cols-1 sm:grid-cols-2'
+        : visibleImages.length === 3
+          ? 'grid-cols-1 sm:grid-cols-2 sm:grid-rows-2'
+          : 'grid-cols-1 sm:grid-cols-2'
 
   useEffect(() => {
     const syncFollowing = () => {
@@ -119,130 +121,143 @@ export default function PostCard({ post, isDetail = false }: PostCardProps) {
 
   return (
     <>
-    <AuthRequiredModal
-      open={showAuthRequired}
-      onClose={() => setShowAuthRequired(false)}
-    />
-    <motion.article
-      layout
-      variants={postVariants}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group relative overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/70 p-5 shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-[1.01] hover:border-matrix-accent/60 hover:border-l-matrix-accent hover:shadow-[0_0_25px_rgba(16,185,129,0.12)]"
-    >
-      <div className="absolute inset-y-0 left-0 w-1 bg-matrix-border transition-colors duration-200 group-hover:bg-matrix-accent" />
+      <AuthRequiredModal
+        open={showAuthRequired}
+        onClose={() => setShowAuthRequired(false)}
+      />
+      <motion.article
+        layout
+        variants={postVariants}
+        whileHover={{ y: -4, transition: { duration: 0.2 } }}
+        className="group relative overflow-hidden rounded-xl border border-matrix-border bg-matrix-card/70 p-5 shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-[1.01] hover:border-matrix-accent/60 hover:border-l-matrix-accent hover:shadow-[0_0_25px_rgba(16,185,129,0.12)]"
+      >
+        <div className="absolute inset-y-0 left-0 w-1 bg-matrix-border transition-colors duration-200 group-hover:bg-matrix-accent" />
 
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="rounded-full border border-matrix-accent/30 bg-matrix-bg p-1.5 text-matrix-accent transition-colors group-hover:border-matrix-accent">
-            <SpyAvatar className="h-6 w-6" />
-          </div>
-          <div className="flex min-w-0 items-center gap-2">
-            {targetUserId ? (
-              <Link
-                to={`/profile/${targetUserId}`}
-                className="truncate font-mono font-bold text-matrix-text transition-colors hover:text-matrix-accent group-hover:text-matrix-accent"
-              >
-                @{targetNickName}
-              </Link>
-            ) : (
-              <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
-                @{targetNickName}
-              </span>
-            )}
-            {!isOwnPost && (!authenticatedUser || !isFollowing) ? (
-              <button
-                type="button"
-                onClick={() => handleFollowChange(true)}
-                className="shrink-0 rounded border border-matrix-accent/60 bg-matrix-accent/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
-                aria-label={`Seguir a ${targetNickName}`}
-              >
-                [ +seguir ]
-              </button>
-            ) : null}
-            {authenticatedUser && !isOwnPost && isFollowing ? (
-              <button
-                type="button"
-                onClick={() => handleFollowChange(false)}
-                className="shrink-0 rounded border border-orange-400/70 bg-orange-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-orange-300 transition hover:border-orange-300 hover:bg-orange-500/20"
-                aria-label={`Dejar de seguir a ${targetNickName}`}
-              >
-                [ dejar de seguir ]
-              </button>
-            ) : null}
-            {isOwnPost ? (
-              <span className="shrink-0 rounded border border-matrix-border/70 bg-matrix-bg/80 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-muted">
-                [ yo ]
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <span className="shrink-0 font-mono text-xs text-matrix-muted">
-          #POST-{String(post.id).padStart(3, '0')}
-        </span>
-      </header>
-
-      {followError && (
-        <p role="alert" className="mt-2 font-mono text-xs text-red-400">
-          ! {followError}
-        </p>
-      )}
-      <p className="my-3 text-sm leading-relaxed text-matrix-text sm:text-base">
-        {post.description}
-      </p>
-
-      {visibleImages.length > 0 && (
-        <div
-          className={`my-3 grid gap-2 overflow-hidden rounded-md border border-matrix-border ${imageGridClass}`}
-        >
-          {visibleImages.map((image) => (
-            <div className="overflow-hidden" key={image.id}>
-              <img
-                src={image.url}
-                alt="Imagen de publicación"
-                className="h-52 w-full object-cover transition-transform hover:scale-[1.01] sm:h-64"
-                loading="lazy"
-                onError={() => {
-                  setFailedImageIds((currentIds) =>
-                    currentIds.includes(image.id)
-                      ? currentIds
-                      : [...currentIds, image.id],
-                  )
-                }}
-              />
+        <header className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="rounded-full border border-matrix-accent/30 bg-matrix-bg p-1.5 text-matrix-accent transition-colors group-hover:border-matrix-accent">
+              <SpyAvatar className="h-6 w-6" />
             </div>
-          ))}
-        </div>
-      )}
+            <div className="flex min-w-0 items-center gap-2">
+              {targetUserId ? (
+                <Link
+                  to={`/profile/${targetUserId}`}
+                  className="truncate font-mono font-bold text-matrix-text transition-colors hover:text-matrix-accent group-hover:text-matrix-accent"
+                >
+                  @{targetNickName}
+                </Link>
+              ) : (
+                <span className="truncate font-mono font-bold text-matrix-text transition-colors group-hover:text-matrix-accent">
+                  @{targetNickName}
+                </span>
+              )}
+              {!isOwnPost && (!authenticatedUser || !isFollowing) ? (
+                <button
+                  type="button"
+                  onClick={() => handleFollowChange(true)}
+                  className="shrink-0 rounded border border-matrix-accent/60 bg-matrix-accent/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-accent transition hover:border-matrix-accent hover:bg-matrix-accent/20"
+                  aria-label={`Seguir a ${targetNickName}`}
+                >
+                  [ +seguir ]
+                </button>
+              ) : null}
+              {authenticatedUser && !isOwnPost && isFollowing ? (
+                <button
+                  type="button"
+                  onClick={() => handleFollowChange(false)}
+                  className="shrink-0 rounded border border-orange-400/70 bg-orange-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-orange-300 transition hover:border-orange-300 hover:bg-orange-500/20"
+                  aria-label={`Dejar de seguir a ${targetNickName}`}
+                >
+                  [ dejar de seguir ]
+                </button>
+              ) : null}
+              {isOwnPost ? (
+                <span className="shrink-0 rounded border border-matrix-border/70 bg-matrix-bg/80 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-tight text-matrix-muted">
+                  [ yo ]
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <span className="shrink-0 font-mono text-xs text-matrix-muted">
+            #POST-{String(post.id).padStart(3, '0')}
+          </span>
+        </header>
 
-      {tags.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Etiquetas">
-          {tags.map((tag) => (
-            <li
-              className="cursor-pointer rounded border border-matrix-accent/20 bg-matrix-bg/80 px-2.5 py-1 font-mono text-xs text-matrix-accent transition-colors hover:border-matrix-accent"
-              key={tag.id}
-            >
-              #{tag.name}
-            </li>
-          ))}
-        </ul>
-      )}
+        {followError && (
+          <p role="alert" className="mt-2 font-mono text-xs text-red-400">
+            ! {followError}
+          </p>
+        )}
+        <p className="my-3 text-sm leading-relaxed text-matrix-text sm:text-base">
+          {post.description}
+        </p>
 
-      <footer className="mt-4 flex items-center justify-between border-t border-matrix-border/60 pt-3 font-mono text-xs">
-        <span className="flex items-center gap-1.5 text-matrix-muted">
-          [ &gt; {commentsCount} comentarios ]
-        </span>
-        <div className="flex items-center gap-4">
-          {!isDetail && (
-            <Link
-              to={`/post/${post.id}`}
-              className="flex items-center gap-1 font-semibold text-matrix-accent transition-transform group-hover:translate-x-0.5 hover:underline"
-            >
-              [ ver_más -&gt; ]
-            </Link>
-          )}
-        </div>
-      </footer>
-    </motion.article>
+        {visibleImages.length > 0 && (
+          <div
+            className={`my-3 grid gap-2 overflow-hidden rounded-md border border-matrix-border ${imageGridClass}`}
+          >
+            {visibleImages.map((image, index) => (
+              <div
+                className={`overflow-hidden ${visibleImages.length === 3 && index === 0 ? 'sm:row-span-2 sm:h-full' : ''}`}
+                key={image.id}
+              >
+                <img
+                  src={image.url}
+                  alt="Imagen de publicación"
+                  className={`w-full rounded-lg object-cover transition-transform hover:scale-[1.01] ${
+                    visibleImages.length === 1
+                      ? 'max-h-96'
+                      : visibleImages.length === 2
+                        ? 'h-64'
+                        : visibleImages.length === 3
+                          ? index === 0
+                            ? 'h-64 sm:h-full'
+                            : 'h-64 sm:h-32'
+                          : 'h-64 sm:h-56'
+                  }`}
+                  loading="lazy"
+                  onError={() => {
+                    setFailedImageIds((currentIds) =>
+                      currentIds.includes(image.id)
+                        ? currentIds
+                        : [...currentIds, image.id],
+                    )
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tags.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Etiquetas">
+            {tags.map((tag) => (
+              <li
+                className="cursor-pointer rounded border border-matrix-accent/20 bg-matrix-bg/80 px-2.5 py-1 font-mono text-xs text-matrix-accent transition-colors hover:border-matrix-accent"
+                key={tag.id}
+              >
+                #{tag.name}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <footer className="mt-4 flex items-center justify-between border-t border-matrix-border/60 pt-3 font-mono text-xs">
+          <span className="flex items-center gap-1.5 text-matrix-muted">
+            [ &gt; {commentsCount} comentarios ]
+          </span>
+          <div className="flex items-center gap-4">
+            {!isDetail && (
+              <Link
+                to={`/post/${post.id}`}
+                className="flex items-center gap-1 font-semibold text-matrix-accent transition-transform group-hover:translate-x-0.5 hover:underline"
+              >
+                [ ver_más -&gt; ]
+              </Link>
+            )}
+          </div>
+        </footer>
+      </motion.article>
     </>
   )
 }
